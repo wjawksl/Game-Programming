@@ -150,12 +150,8 @@ void Update() {
 				
 				break;
 			}
-		}
-		/*g_destination_missile = g_destination_plane;
-		g_destination_missile.y = g_destination_plane.y - 50; // 여기도 배열*/
-	}
-
-	
+		}		
+	}	
 }
 
 /////////////////////////////////////////////////////////////
@@ -234,10 +230,10 @@ void HandleEvents()
 // 이 함수에서 사용된 자원(이미지, 사운드 등)과 메모리 등을 해제해야한다.
 void ClearGame()
 {
-	SDL_DestroyTexture(g_plane_sheet_texture); // 메모리 해제
+	SDL_DestroyTexture(g_plane_sheet_texture); // 비행기 메모리 해제
 	for (int i = 0; i < 5; i++)
 	{
-		SDL_DestroyTexture(missile_arr[i].missile_sheet_texture);
+		SDL_DestroyTexture(missile_arr[i].missile_sheet_texture); // 미사일 메모리 해제
 	}
 }
 
