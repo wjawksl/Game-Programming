@@ -10,9 +10,11 @@ SDL_Rect g_bg_source_rect;
 SDL_Rect g_bg_destination_rect;
 SDL_Texture* g_bg_texture;
 
+int g_oryugen_sprite_num;
+int g_current_oryugen_id;
 
-SDL_Rect g_source_rect;
-SDL_Rect g_destination_rect;
+SDL_Rect g_ryu_source_rects[6];
+SDL_Rect g_ryu_destination_rect;
 SDL_Texture* g_ryu_sheet_texture;
 
 
@@ -41,23 +43,35 @@ void InitGame() {
 	g_bg_texture = SDL_CreateTextureFromSurface(g_renderer, bg_surface);
 
 	SDL_FreeSurface(bg_surface);
+
+	g_oryugen_sprite_num = 6;
+	g_current_oryugen_id = 0;
 	
 	//Ryu Character
 	SDL_Surface* ryu_sheet_surface = IMG_Load("../../Resources/60224.png"); // 이미지 파일을 가져옴
 	SDL_SetColorKey(ryu_sheet_surface, SDL_TRUE, SDL_MapRGB(ryu_sheet_surface->format, 0, 0, 248));
 	g_ryu_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, ryu_sheet_surface);
 
+	SDL_SetTextureAlphaMod(g_ryu_sheet_texture, 170); // 투명도
+	SDL_SetTextureColorMod(g_ryu_sheet_texture, 255, 0, 0); // 색 추가하기
 	SDL_FreeSurface(ryu_sheet_surface);
 
-	g_source_rect.x = 171;
-	g_source_rect.y = 1647;
-	g_source_rect.w = 67;
-	g_source_rect.h = 140;
+	g_ryu_source_rects[0] = { 7,   1647, 69, 140 };
+	g_ryu_source_rects[1] = { 94,  1647, 76, 140 };
+	g_ryu_source_rects[2] = { 171, 1647, 68, 140 };
+	g_ryu_source_rects[3] = { 240, 1647, 61, 140 };
+	g_ryu_source_rects[4] = { 312, 1647, 54, 140 };
+	g_ryu_source_rects[5] = { 390, 1647, 67, 140 };
 
-	g_destination_rect.x = 300;
-	g_destination_rect.y = 200;
-	g_destination_rect.w = g_source_rect.w;
-	g_destination_rect.h = g_source_rect.h;
+	g_ryu_source_rects[1].x = 94;
+	g_ryu_source_rects[1].y = 1647;
+	g_ryu_source_rects[1].w = 76;
+	g_ryu_source_rects[1].h = 140;
+
+	g_ryu_destination_rect.x = 300;
+	g_ryu_destination_rect.y = 200;
+	g_ryu_destination_rect.w = g_ryu_source_rects[0].w;
+	g_ryu_destination_rect.h = g_ryu_source_rects[0].h;
 
 
 	// Clear the console screen.
@@ -74,6 +88,10 @@ void InitGame() {
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
 void Update() {
 	
+	g_current_oryugen_id++;
+	if (g_current_oryugen_id >= g_oryugen_sprite_num) {
+		g_current_oryugen_id = 0;
+	}
 	g_elapsed_time_ms += 33;
 }
 
@@ -98,12 +116,31 @@ void Render() {
 	//g_ryu_sheet_texture
 	for (int i = 0; i < 3; i++) {
 
-		SDL_Rect r = g_destination_rect;
+		if (i == 0) 
+		{
+			SDL_SetTextureAlphaMod(g_ryu_sheet_texture, 170); // 투명도
+			SDL_SetTextureColorMod(g_ryu_sheet_texture, 255, 0, 0); // 색 추가하기
+		}
+		else if (i == 1)
+		{
+			SDL_SetTextureAlphaMod(g_ryu_sheet_texture, 255); // 투명도
+			SDL_SetTextureColorMod(g_ryu_sheet_texture, 0, 255, 255); // 색 추가하기
+		}
+		else 
+		{
+			SDL_SetTextureAlphaMod(g_ryu_sheet_texture, 100); // 투명도
+			SDL_SetTextureColorMod(g_ryu_sheet_texture, 255, 255, 255); // 색 추가하기
+		}
+
+		SDL_Rect r = g_ryu_destination_rect;
 
 		r.x += i * 100;
-		r.w *= (0.5f + i);
-		r.h *= (0.5f + i);
-		SDL_RenderCopy(g_renderer, g_ryu_sheet_texture, &g_source_rect, &r); // texture를 복사해서 화면에 나타내주는 함수
+		r.w = g_ryu_source_rects[g_current_oryugen_id].w *(1.0f + i); // 점점 크게
+		r.h = g_ryu_source_rects[g_current_oryugen_id].h *(1.0f + i); // 점점 크게
+		SDL_RenderCopy(g_renderer,
+			g_ryu_sheet_texture,
+			&g_ryu_source_rects[g_current_oryugen_id],
+			&r); // texture를 복사해서 화면에 나타내주는 함수
 	}
 	
 
@@ -166,5 +203,6 @@ void HandleEvents()
 void ClearGame()
 {
 	SDL_DestroyTexture(g_ryu_sheet_texture);
+	SDL_DestroyTexture(g_bg_texture);
 }
 
