@@ -11,6 +11,11 @@ int main(int argc, char* argv[]) {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	g_window = SDL_CreateWindow("First Window", 100, 100, 600, 750, 0);
 
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096) == -1) {
+		std::cout << "Mix_OpenAudio " << Mix_GetError() << std::endl;
+		exit(1);
+	}
+
 	//rendering context
 	g_renderer = SDL_CreateRenderer(g_window, -1, 0);
 	InitGame();

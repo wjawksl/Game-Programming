@@ -17,7 +17,7 @@ void InitGame() {
 
 	// English Title
 	{
-		TTF_Font* font1 = TTF_OpenFont("../../Resources/Chlorinp.ttf", 72);
+		TTF_Font* font1 = TTF_OpenFont("../../Resources/Chlorinp.ttf", 64);
 		SDL_Color red = { 255, 0, 0, 0 };
 		SDL_Surface* tmp_surface = TTF_RenderText_Blended(font1, "Snake Game", red);
 		
@@ -35,7 +35,7 @@ void InitGame() {
 
 	// Korean Title
 	{
-		TTF_Font* font2 = TTF_OpenFont("../../Resources/arose.ttf", 72);
+		TTF_Font* font2 = TTF_OpenFont("../../Resources/arose.ttf", 64);
 		SDL_Color blue = { 0, 0, 255, 0 };
 		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font2, CW2A(L"πÏ ∞‘¿”", CP_UTF8), blue);
 
