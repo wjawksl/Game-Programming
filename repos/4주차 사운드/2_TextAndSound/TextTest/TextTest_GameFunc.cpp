@@ -1,6 +1,7 @@
 #include "TextTest_GameFunc.h"
 #include "SDL_image.h"
 #include <windows.h>
+#include <string>
 #include <atlstr.h> // 한국어 쓰려면 필요함
 
 
@@ -15,12 +16,11 @@ void InitGame() {
 
 	g_flag_running = true;
 
-	// English Title
+	// Korean Title
 	{
-		TTF_Font* font1 = TTF_OpenFont("../../Resources/Chlorinp.ttf", 64);
+		TTF_Font* font1 = TTF_OpenFont("../../Resources/arose.ttf", 64);
 		SDL_Color red = { 255, 0, 0, 0 };
-		SDL_Surface* tmp_surface = TTF_RenderText_Blended(font1, "Snake Game", red);
-		
+		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font1, CW2A(L"점수: ", CP_UTF8), red);
 		//텍스트 가져오기
 		g_title_en_rect.x = 0;
 		g_title_en_rect.y = 0;
@@ -33,11 +33,19 @@ void InitGame() {
 	}
 
 
-	// Korean Title
+	// Number, English Title
 	{
 		TTF_Font* font2 = TTF_OpenFont("../../Resources/arose.ttf", 64);
 		SDL_Color blue = { 0, 0, 255, 0 };
-		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font2, CW2A(L"뱀 게임", CP_UTF8), blue);
+
+		std::string str = "00010";
+		int score_int = std::stoi(str);
+		score_int += 100;
+		str = std::to_string(score_int);
+		while (str.size() != 5)
+			str = "0" + str;
+		const char* widecstr = str.c_str();
+		SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(font2, widecstr, blue);
 
 		g_title_kr_rect.x = 0;
 		g_title_kr_rect.y = 0;

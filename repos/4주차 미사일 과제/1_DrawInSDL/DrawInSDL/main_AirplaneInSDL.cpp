@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "Mix_OpenAudio " << Mix_GetError() << std::endl;
 		exit(1);
 	}
-
+	TTF_Init();
 	//rendering context
 	g_renderer = SDL_CreateRenderer(g_window, -1, 0);
 	InitGame();
@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 	ClearGame();
 
 	SDL_Quit();
+	TTF_Quit();
 
 	return 0;
 }
