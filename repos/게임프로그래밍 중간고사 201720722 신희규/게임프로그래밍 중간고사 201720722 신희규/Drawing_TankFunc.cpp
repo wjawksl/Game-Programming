@@ -4,34 +4,45 @@
 #include <string>
 #include <atlstr.h> // 한국어 쓰려면 필요함
 
+#define SIZE 8
+
 using namespace std;
 
 class Missile {
 public:
 	bool flag; // 전체 public 선언
+	int angle;
 	SDL_Rect destination_missile;
 	SDL_Texture* missile_sheet_texture;
 
 	Missile() = default;
-	Missile(bool f, SDL_Rect dm, SDL_Texture* mst) : flag(f), destination_missile(dm), missile_sheet_texture(mst) {}
+	Missile(bool f, int a, SDL_Rect dm, SDL_Texture* mst) : flag(f), angle(a), destination_missile(dm), missile_sheet_texture(mst) {}
 };
 
-Missile* missile_arr = new Missile[5]; // 클래스 배열 초기화
+Missile* missile_arr = new Missile[SIZE]; // 클래스 배열 초기화
 
 int g_key[5];
+int dx[4] = { 0,1,0,-1 }; // 위, 오른쪽, 아래, 왼쪽
+int dy[4] = { -1,0,1,0 };
 
 bool g_missile_flag;
 bool g_flag_firing;
 bool g_flag_interaction;
+bool g_flag_boarding;
 
 int g_missile_cnt;
+double g_tank_angle;
 
 Mix_Music* g_bg_mus; // 배경음악 변수 선언
+
 Mix_Chunk* g_missile_fire_sound; // 미사일 발사 효과음 변수 선언
+Mix_Chunk* g_open_box_sound; // 상자 개봉 효과음
+Mix_Chunk* g_ride_tank_sound;
+
 TTF_Font* g_font; // 게임 폰트 선언
 SDL_Color black = { 0, 0, 0, 0 }; // 색깔 선언
 
-SDL_Texture* g_scoreText_num; // 점수 텍스트(숫자)의 텍스쳐 선언
+SDL_Texture* g_missile_cnt_texture; // 잔여 미사일 수의 텍스쳐 선언
 
 SDL_Texture* g_tank_sheet_texture; // 각 이미지들의 텍스쳐 선언
 SDL_Texture* g_missile_sheet_texture;
@@ -54,7 +65,10 @@ SDL_Rect g_box_source_rect; // 캐릭터 이미지에서 잘라오는 부분
 SDL_Rect g_destination_box;
 SDL_Texture* g_box_sheet_texture;
 
-SDL_Rect g_scoreText_num_rect; // 텍스트를 가져오는 부분
+SDL_Rect g_missile_cnt_rect; // 텍스트를 가져오는 부분
+
+SDL_Texture* g_board_text_kr; // 탑승중 텍스트를 가져옴
+SDL_Rect g_board_text_kr_rect;
 // 흘러간 시간 기록
 double g_elapsed_time_ms;
 
@@ -69,16 +83,18 @@ void InitGame() {
 	g_flag_running = true;
 	g_flag_firing = false;
 	g_flag_interaction = false;
+	g_flag_boarding = false;
 	g_elapsed_time_ms = 0;
+	g_tank_angle = 0;
 
 	InitBGM();
 	//Mix_FadeInMusic(g_bg_mus, -1, 2000); // 배경음악 플레이
 
-	InitMissileChunk(); // 미사일 효과음 초기화
+	InitChunk(); //효과음 초기화
 
-	InitScoreText(); // 점수 초기화
+	InitTexts(); // 점수 초기화
 
-	MakeGameObjTextures();
+	MakeGameObjTextures(); // 오브젝트들의 텍스트 가져오기
 
 	g_bg_source_rect.x = 0; // 배경화면 가져오기
 	g_bg_source_rect.y = 0;
@@ -111,9 +127,9 @@ void InitGame() {
 	g_box_source_rect = { 233, 257, 1139, 885 }; // 보물상자 잘라오기
 	g_destination_box = { 50, 100, 80, 64 }; // 보물상자의 위치
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < SIZE; i++)
 	{
-		missile_arr[i] = Missile(false, g_destination_tank, g_missile_sheet_texture);
+		missile_arr[i] = Missile(false, -1, g_destination_tank, g_missile_sheet_texture);
 	}
 
 	// Clear the console screen.
@@ -128,47 +144,41 @@ void InitGame() {
 // 게임에서 일어나는 변화는 모두 이 곳에서 구현한다.
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
 void Update() {
+	
+	g_elapsed_time_ms += 33;
 
-	for (int i = 0; i < 5; i++)
+	UpdateMissile();
+
+	if (!g_flag_boarding)
 	{
-		if (missile_arr[i].flag)
-		{
-			missile_arr[i].destination_missile.y -= 10;
-			if (missile_arr[i].destination_missile.y < 0)
-			{
-				missile_arr[i].flag = false;
+		PlayerMove();
+		if (g_key[4]) {
+
+			if (g_flag_interaction) return;
+			g_flag_interaction = true;
+			
+			if (DistinctObject(g_destination_tank)) // 탱크와 상호작용이라면
+			{				
+				Mix_PlayChannel(-1, g_ride_tank_sound, 0);
+				g_flag_boarding = true;
+			}
+			else if (DistinctObject(g_destination_box)) // 보물 상자와 상호작용이라면
+			{				
+				Mix_PlayChannel(-1, g_open_box_sound, 0);
+				g_missile_cnt += 5;
 			}
 		}
 	}
-	g_elapsed_time_ms += 33;
-
-	if (g_key[0]) {
-		g_destination_charactor.x -= 10;
-	}
-	if (g_key[1]) {
-		g_destination_charactor.x += 10;
-	}
-	if (g_key[2]) {
-		g_destination_charactor.y -= 10;
-	}
-	if (g_key[3]) {
-		g_destination_charactor.y += 10;
-	}
-	if (g_key[4]) {
-
-		if (g_flag_interaction) return;
-		g_flag_interaction = true;
-
-		//FireMissile(); // 미사일 발사
-
-		if (ObjectDistinct(g_destination_tank))
+	else
+	{	
+		TankMoveAndFire();
+		if (g_key[4])
 		{
-			std::cout << "Tank!" << std::endl;					
-		}
-		else if (ObjectDistinct(g_destination_box))
-		{
-			std::cout << "Box!" << std::endl;
-			g_missile_cnt += 5;
+			if (g_flag_interaction) return;
+			g_flag_interaction = true;
+
+			Mix_PlayChannel(-1, g_ride_tank_sound, 0);
+			g_flag_boarding = false;
 		}
 	}
 }
@@ -180,21 +190,24 @@ void Update() {
 void Render() {
 	// 배경화면
 	SDL_RenderCopy(g_renderer, g_bg_sheet_texture, &g_bg_source_rect, &g_destination_bg); // texture를 복사해서 화면에 나타내주는 함수
-	 	
-	// 비행기
-	SDL_RenderCopy(g_renderer, g_tank_sheet_texture, &g_tank_source_rect, &g_destination_tank); 
+
+	// 탱크
+	SDL_RenderCopyEx(g_renderer, g_tank_sheet_texture, &g_tank_source_rect,
+		&g_destination_tank, 90 * g_tank_angle, NULL, SDL_FLIP_NONE);
 
 	// 보물상자
-	SDL_RenderCopy(g_renderer, g_box_sheet_texture, &g_box_source_rect, &g_destination_box);
+	if(!g_missile_cnt)
+		SDL_RenderCopy(g_renderer, g_box_sheet_texture, &g_box_source_rect, &g_destination_box);
 
 	// 캐릭터
-	SDL_RenderCopy(g_renderer, g_charactor_sheet_texture, &g_charactor_source_rect, &g_destination_charactor);
+	if(!g_flag_boarding)
+		SDL_RenderCopy(g_renderer, g_charactor_sheet_texture, &g_charactor_source_rect, &g_destination_charactor);
 
 	//여기서도 for문 돌려서 flag가 true인 것만 그리기!
 	DrawMissile();
 
-	// 점수
-	DrawMissileCntText();
+	// 텍스트
+	DrawGameText();
 
 	// 백에서 그린 그림을 한번에 가져옴
 	SDL_RenderPresent(g_renderer);
@@ -233,11 +246,12 @@ void HandleEvents()
 			break;
 
 		case SDL_KEYUP:
+			if (g_flag_boarding && g_flag_firing) g_flag_firing = false;
 
-			if (event.key.keysym.sym == SDLK_LEFT) {
-				g_key[0] = 0;
+			if (event.key.keysym.sym == SDLK_LEFT) {				
+				g_key[0] = 0;				
 			}
-			if (event.key.keysym.sym == SDLK_RIGHT) {
+			if (event.key.keysym.sym == SDLK_RIGHT) {				
 				g_key[1] = 0;
 			}
 			if (event.key.keysym.sym == SDLK_UP) {
@@ -266,15 +280,19 @@ void ClearGame()
 {
 	SDL_DestroyTexture(g_bg_sheet_texture);
 	SDL_DestroyTexture(g_tank_sheet_texture); // 탱크 메모리 해제
-	SDL_DestroyTexture(g_scoreText_num); // 한글 점수 텍스쳐 메모리 해제
+	SDL_DestroyTexture(g_box_sheet_texture); // 보물 상자 메모리 해제
+	SDL_DestroyTexture(g_charactor_sheet_texture); // 캐릭터 메모리 해제
+	SDL_DestroyTexture(g_missile_cnt_texture); // 잔여 미사일 수 텍스쳐 메모리 해제
 	TTF_CloseFont(g_font); // 폰트 메모리 해제
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < SIZE; i++)
 	{
 		SDL_DestroyTexture(missile_arr[i].missile_sheet_texture); // 미사일 메모리 해제
 	}
 	Mix_FreeMusic(g_bg_mus);
 	Mix_FreeChunk(g_missile_fire_sound);
+	Mix_FreeChunk(g_open_box_sound);
+	Mix_FreeChunk(g_ride_tank_sound);
 }
 
 void MakeGameObjTextures()
@@ -299,6 +317,7 @@ void MakeGameObjTextures()
 	g_box_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, box_sheet_surface);
 	
 	SDL_FreeSurface(charactor_sheet_surface);
+	SDL_FreeSurface(box_sheet_surface);
 	SDL_FreeSurface(bg_sheet_surface);
 	SDL_FreeSurface(tank_sheet_surface);
 	SDL_FreeSurface(missile_sheet_surface);
@@ -306,17 +325,60 @@ void MakeGameObjTextures()
 
 void DrawMissile()
 {
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < SIZE; i++)
 	{
 		if (missile_arr[i].flag)
 		{
 			//g_missile_sheet_texture
-			SDL_RenderCopy(g_renderer, missile_arr[i].missile_sheet_texture, &g_missile_source_rect, &missile_arr[i].destination_missile); // texture를 복사해서 화면에 나타내주는 함수
+			SDL_RenderCopyEx(g_renderer, missile_arr[i].missile_sheet_texture,
+				&g_missile_source_rect, &missile_arr[i].destination_missile, 90 * (double)missile_arr[i].angle, NULL, SDL_FLIP_NONE); // texture를 복사해서 화면에 나타내주는 함수
 		}
 	}
 }
+void PlayerMove()
+{
+	if (g_key[0]) {
+		g_destination_charactor.x -= 10;
+	}
+	if (g_key[1]) {
+		g_destination_charactor.x += 10;
+	}
+	if (g_key[2]) {
+		g_destination_charactor.y -= 10;
+	}
+	if (g_key[3]) {
+		g_destination_charactor.y += 10;
+	}	
+}
+void TankMoveAndFire()
+{
+	if (g_key[0]) {
+		g_tank_angle = 3;
 
-bool ObjectDistinct(SDL_Rect rect)
+		if(g_missile_cnt > 0)
+			FireMissile();
+	}
+	if (g_key[1]) {
+		g_tank_angle = 1;
+		
+		if (g_missile_cnt > 0)
+			FireMissile();
+	}
+	if (g_key[2]) {
+		g_tank_angle = 0;
+		
+		if (g_missile_cnt > 0)
+			FireMissile();
+	}
+	if (g_key[3]) {
+		g_tank_angle = 2;
+		
+		if (g_missile_cnt > 0)
+			FireMissile();
+	}
+	
+}
+bool DistinctObject(SDL_Rect rect)
 {
 	int player_x = g_destination_charactor.x;
 	int player_y = g_destination_charactor.y;
@@ -337,47 +399,77 @@ void FireMissile()
 	if (g_flag_firing) return;
 	g_flag_firing = true;
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < SIZE; i++)
 	{
 		if (!missile_arr[i].flag)
 		{
 			missile_arr[i].flag = true;
-			missile_arr[i].destination_missile.x = g_destination_tank.x + 10;
-			missile_arr[i].destination_missile.y = g_destination_tank.y - 75; // 미사일 위치 설정
+			missile_arr[i].destination_missile.x = g_destination_tank.x + 75 * dx[(int)g_tank_angle];
+			missile_arr[i].destination_missile.y = g_destination_tank.y + 75 * dy[(int)g_tank_angle]; // 미사일 위치 설정
 			missile_arr[i].destination_missile.w = 56;
 			missile_arr[i].destination_missile.h = 72;
-			
+			missile_arr[i].angle = (int)g_tank_angle;
+
 			Mix_PlayChannel(-1, g_missile_fire_sound, 0); //발사 효과음
+			g_missile_cnt--;
 			break;
 		}
 	}
 }
 
-void DrawMissileCntText()
+void UpdateMissile()
 {
-	// 화면에 표시 될 위치
-	SDL_Rect tmp_r;
+	for (int i = 0; i < SIZE; i++) // 미사일의 움직임 관리
+	{
+		if (missile_arr[i].flag)
+		{
+			missile_arr[i].destination_missile.x += 15 * dx[missile_arr[i].angle];
+			missile_arr[i].destination_missile.y += 15 * dy[missile_arr[i].angle];
+
+			if (missile_arr[i].destination_missile.x < 0 || 650 < missile_arr[i].destination_missile.x ||
+				missile_arr[i].destination_missile.y < 0 || 650 < missile_arr[i].destination_missile.y)
+			{
+				missile_arr[i].flag = false;
+				missile_arr[i].angle = -1;
+			}
+		}
+	}
+}
+
+void DrawGameText()
+{	
+	// Draw Score (Korean)
+	SDL_Rect tmp_r; // 화면에 표시 될 위치
+
+	if(g_flag_boarding)
+	{
+		tmp_r.x = 100;
+		tmp_r.y = 650;
+		tmp_r.w = g_board_text_kr_rect.w;
+		tmp_r.h = g_board_text_kr_rect.h;
+		SDL_RenderCopy(g_renderer, g_board_text_kr, &g_board_text_kr_rect, &tmp_r);
+	}
 
 	// Draw Score (Number)
 	string missile_cnt_str = to_string(g_missile_cnt);
 	const char* cstr = missile_cnt_str.c_str();
 	SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(g_font, cstr, black);
 
-	g_scoreText_num_rect.x = 0;
-	g_scoreText_num_rect.y = 0;
-	g_scoreText_num_rect.w = tmp_surface->w;
-	g_scoreText_num_rect.h = tmp_surface->h;
+	g_missile_cnt_rect.x = 0;
+	g_missile_cnt_rect.y = 0;
+	g_missile_cnt_rect.w = tmp_surface->w;
+	g_missile_cnt_rect.h = tmp_surface->h;
 
-	g_scoreText_num = SDL_CreateTextureFromSurface(g_renderer, tmp_surface);
+	g_missile_cnt_texture = SDL_CreateTextureFromSurface(g_renderer, tmp_surface);
 	SDL_FreeSurface(tmp_surface); // 계속 해제해줘야함
 
 	tmp_r.x = 650;
 	tmp_r.y = 650;
-	tmp_r.w = g_scoreText_num_rect.w;
-	tmp_r.h = g_scoreText_num_rect.h;
+	tmp_r.w = g_missile_cnt_rect.w;
+	tmp_r.h = g_missile_cnt_rect.h;
 
-	SDL_RenderCopy(g_renderer, g_scoreText_num, &g_scoreText_num_rect, &tmp_r);
-	SDL_DestroyTexture(g_scoreText_num); // 계속 해제해줘야함
+	SDL_RenderCopy(g_renderer, g_missile_cnt_texture, &g_missile_cnt_rect, &tmp_r);
+	SDL_DestroyTexture(g_missile_cnt_texture); // 계속 해제해줘야함
 }
 void InitBGM()
 {
@@ -387,13 +479,32 @@ void InitBGM()
 	}
 	Mix_VolumeMusic(24);
 }
-void InitMissileChunk()
+void InitChunk()
 {
 	g_missile_fire_sound = Mix_LoadWAV("../../Resources/fire.mp3"); // 효과음 로드
 	Mix_VolumeChunk(g_missile_fire_sound, 24);
+
+	g_open_box_sound = Mix_LoadWAV("../../Resources/Coin.wav"); // 효과음 로드
+	Mix_VolumeChunk(g_open_box_sound, 24);
+
+	g_ride_tank_sound = Mix_LoadWAV("../../Resources/IO.mp3"); // 효과음 로드
+	Mix_VolumeChunk(g_ride_tank_sound, 24);
+	
 }
-void InitScoreText()
+void InitTexts()
 {	
+	// scoreText_kr Title
+	g_font = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 28);
+	SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(g_font, CW2A(L"탑승중", CP_UTF8), black);
+	//텍스트 가져오기
+	g_board_text_kr_rect.x = 0;
+	g_board_text_kr_rect.y = 0;
+	g_board_text_kr_rect.w = tmp_surface->w;
+	g_board_text_kr_rect.h = tmp_surface->h;
+
+	g_board_text_kr = SDL_CreateTextureFromSurface(g_renderer, tmp_surface);
+	SDL_FreeSurface(tmp_surface);
+
 	// scoreText_num
 	g_font = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 28); // 전역변수 선언
 }
