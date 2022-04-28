@@ -15,15 +15,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Drawing_Gamefunc.h">
+    <ClInclude Include="TankGameFuncStage1.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFunc.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TankGameFuncIntro.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TankGameFuncEnding.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Drawing_TankFunc.cpp">
+    <ClCompile Include="TankGameFuncStage1.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="main_TankInSDL.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFunc.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TankGameFuncIntro.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TankGameFuncEnding.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

@@ -142,10 +142,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Drawing_Gamefunc.h" />
+    <ClInclude Include="GameFunc.h" />
+    <ClInclude Include="TankGameFuncEnding.h" />
+    <ClInclude Include="TankGameFuncIntro.h" />
+    <ClInclude Include="TankGameFuncStage1.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Drawing_TankFunc.cpp" />
+    <ClCompile Include="GameFunc.cpp" />
+    <ClCompile Include="TankGameFuncEnding.cpp" />
+    <ClCompile Include="TankGameFuncIntro.cpp" />
+    <ClCompile Include="TankGameFuncStage1.cpp" />
     <ClCompile Include="main_TankInSDL.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

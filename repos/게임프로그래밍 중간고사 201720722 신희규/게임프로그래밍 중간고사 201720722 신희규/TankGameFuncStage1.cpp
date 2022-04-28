@@ -1,84 +1,18 @@
-#include "Drawing_GameFunc.h"
+#include "TankGameFuncStage1.h"
 #include "SDL_image.h"
 #include <windows.h>
 #include <string>
 #include <atlstr.h> // 한국어 쓰려면 필요함
 
-#define SIZE 8
-
 using namespace std;
 
-class Missile {
-public:
-	bool flag; // 전체 public 선언
-	int angle;
-	SDL_Rect destination_missile;
-	SDL_Texture* missile_sheet_texture;
+#define SIZE 8
 
-	Missile() = default;
-	Missile(bool f, int a, SDL_Rect dm, SDL_Texture* mst) : flag(f), angle(a), destination_missile(dm), missile_sheet_texture(mst) {}
-};
+// Init() 대신 생성자를 사용함
+Stage1::Stage1()
+{
+	missile_arr = new Missile[SIZE]; // 클래스 배열 초기화
 
-Missile* missile_arr = new Missile[SIZE]; // 클래스 배열 초기화
-
-int g_key[5];
-int dx[4] = { 0,1,0,-1 }; // 위, 오른쪽, 아래, 왼쪽
-int dy[4] = { -1,0,1,0 };
-
-bool g_missile_flag;
-bool g_flag_firing;
-bool g_flag_interaction;
-bool g_flag_boarding;
-
-int g_missile_cnt;
-double g_tank_angle;
-
-Mix_Music* g_bg_mus; // 배경음악 변수 선언
-
-Mix_Chunk* g_missile_fire_sound; // 미사일 발사 효과음 변수 선언
-Mix_Chunk* g_open_box_sound; // 상자 개봉 효과음
-Mix_Chunk* g_ride_tank_sound;
-
-TTF_Font* g_font; // 게임 폰트 선언
-SDL_Color black = { 0, 0, 0, 0 }; // 색깔 선언
-
-SDL_Texture* g_missile_cnt_texture; // 잔여 미사일 수의 텍스쳐 선언
-
-SDL_Texture* g_tank_sheet_texture; // 각 이미지들의 텍스쳐 선언
-SDL_Texture* g_missile_sheet_texture;
-SDL_Texture* g_bg_sheet_texture;
-
-SDL_Rect g_bg_source_rect; // 배경 이미지에서 잘라오는 부분
-SDL_Rect g_destination_bg;
-
-SDL_Rect g_tank_source_rect; // 비행기 이미지에서 잘라오는 부분
-SDL_Rect g_destination_tank;
-
-SDL_Rect g_missile_source_rect; // 미사일 이미지에서 잘라오는 부분
-SDL_Rect g_destination_missile;
-
-SDL_Rect g_charactor_source_rect; // 캐릭터 이미지에서 잘라오는 부분
-SDL_Rect g_destination_charactor;
-SDL_Texture* g_charactor_sheet_texture;
-
-SDL_Rect g_box_source_rect; // 캐릭터 이미지에서 잘라오는 부분
-SDL_Rect g_destination_box;
-SDL_Texture* g_box_sheet_texture;
-
-SDL_Rect g_missile_cnt_rect; // 텍스트를 가져오는 부분
-
-SDL_Texture* g_board_text_kr; // 탑승중 텍스트를 가져옴
-SDL_Rect g_board_text_kr_rect;
-// 흘러간 시간 기록
-double g_elapsed_time_ms;
-
-
-/////////////////////////////////////////////////////////////
-// InitGame() 
-// 프로그램이 시작될 때 최초에 한 번 호출되는 함수.
-// 이 함수에서 게임에 필요한 자원(이미지, 사운드 등)을 로딩하고, 상태 변수들을 초기화 해야한다.
-void InitGame() {
-	//g_input = 0;
 	g_missile_cnt = 0;
 	g_flag_running = true;
 	g_flag_firing = false;
@@ -143,7 +77,7 @@ void InitGame() {
 // 실제 게임의 룰을 구현해야하는 곳.
 // 게임에서 일어나는 변화는 모두 이 곳에서 구현한다.
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
-void Update() {
+void Stage1::Update() {
 	
 	g_elapsed_time_ms += 33;
 
@@ -187,7 +121,7 @@ void Update() {
 // Render() 
 // 그림을 그리는 함수.
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
-void Render() {
+void Stage1::Render() {
 	// 배경화면
 	SDL_RenderCopy(g_renderer, g_bg_sheet_texture, &g_bg_source_rect, &g_destination_bg); // texture를 복사해서 화면에 나타내주는 함수
 
@@ -217,7 +151,7 @@ void Render() {
 // HandleEvents() 
 // 이벤트를 처리하는 함수.
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
-void HandleEvents()
+void Stage1::HandleEvents()
 {
 	SDL_Event event;
 	if (SDL_PollEvent(&event)) {
@@ -266,6 +200,15 @@ void HandleEvents()
 			}
 			break;
 
+		case SDL_MOUSEBUTTONDOWN:
+
+			// If the mouse left button is pressed. 
+			if (event.button.button == SDL_BUTTON_LEFT)
+			{
+				g_current_game_phase = PHASE_ENDING;
+			}
+			break;
+
 		default:
 			break;
 		}
@@ -276,7 +219,8 @@ void HandleEvents()
 // ClearGame() 
 // 프로그램이 끝날 때 한 번 호출되는 함수.
 // 이 함수에서 사용된 자원(이미지, 사운드 등)과 메모리 등을 해제해야한다.
-void ClearGame()
+// ClearGame() 대신 소멸자 사용
+Stage1::~Stage1()
 {
 	SDL_DestroyTexture(g_bg_sheet_texture);
 	SDL_DestroyTexture(g_tank_sheet_texture); // 탱크 메모리 해제
@@ -295,7 +239,7 @@ void ClearGame()
 	Mix_FreeChunk(g_ride_tank_sound);
 }
 
-void MakeGameObjTextures()
+void Stage1::MakeGameObjTextures()
 {
 	SDL_Surface* bg_sheet_surface = IMG_Load("../../Resources/BG.png"); // 이미지 파일을 가져옴
 	g_bg_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, bg_sheet_surface);
@@ -323,7 +267,7 @@ void MakeGameObjTextures()
 	SDL_FreeSurface(missile_sheet_surface);
 }
 
-void DrawMissile()
+void Stage1::DrawMissile()
 {
 	for (int i = 0; i < SIZE; i++)
 	{
@@ -335,7 +279,7 @@ void DrawMissile()
 		}
 	}
 }
-void PlayerMove()
+void Stage1::PlayerMove()
 {
 	if (g_key[0]) {
 		g_destination_charactor.x -= 10;
@@ -350,7 +294,7 @@ void PlayerMove()
 		g_destination_charactor.y += 10;
 	}	
 }
-void TankMoveAndFire()
+void Stage1::TankMoveAndFire()
 {
 	if (g_key[0]) {
 		g_tank_angle = 3;
@@ -378,7 +322,7 @@ void TankMoveAndFire()
 	}
 	
 }
-bool DistinctObject(SDL_Rect rect)
+bool Stage1::DistinctObject(SDL_Rect rect)
 {
 	int player_x = g_destination_charactor.x;
 	int player_y = g_destination_charactor.y;
@@ -394,7 +338,7 @@ bool DistinctObject(SDL_Rect rect)
 
 	return false;
 }
-void FireMissile()
+void Stage1::FireMissile()
 {
 	if (g_flag_firing) return;
 	g_flag_firing = true;
@@ -417,7 +361,7 @@ void FireMissile()
 	}
 }
 
-void UpdateMissile()
+void Stage1::UpdateMissile()
 {
 	for (int i = 0; i < SIZE; i++) // 미사일의 움직임 관리
 	{
@@ -436,7 +380,7 @@ void UpdateMissile()
 	}
 }
 
-void DrawGameText()
+void Stage1::DrawGameText()
 {	
 	// Draw Score (Korean)
 	SDL_Rect tmp_r; // 화면에 표시 될 위치
@@ -471,7 +415,7 @@ void DrawGameText()
 	SDL_RenderCopy(g_renderer, g_missile_cnt_texture, &g_missile_cnt_rect, &tmp_r);
 	SDL_DestroyTexture(g_missile_cnt_texture); // 계속 해제해줘야함
 }
-void InitBGM()
+void Stage1::InitBGM()
 {
 	g_bg_mus = Mix_LoadMUS("../../Resources/Retrocity.mp3"); // 배경음악 로드
 	if (g_bg_mus == 0) {
@@ -479,7 +423,7 @@ void InitBGM()
 	}
 	Mix_VolumeMusic(24);
 }
-void InitChunk()
+void Stage1::InitChunk()
 {
 	g_missile_fire_sound = Mix_LoadWAV("../../Resources/fire.mp3"); // 효과음 로드
 	Mix_VolumeChunk(g_missile_fire_sound, 24);
@@ -491,7 +435,7 @@ void InitChunk()
 	Mix_VolumeChunk(g_ride_tank_sound, 24);
 	
 }
-void InitTexts()
+void Stage1::InitTexts()
 {	
 	// scoreText_kr Title
 	g_font = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 28);

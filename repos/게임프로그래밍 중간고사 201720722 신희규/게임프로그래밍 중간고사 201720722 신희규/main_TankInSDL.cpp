@@ -1,9 +1,13 @@
-#include "Drawing_GameFunc.h"
+#include "TankGameFuncIntro.h"
+#include "TankGameFuncStage1.h"
+#include "TankGameFuncEnding.h"
+#include "GameFunc.h"
 
 SDL_Window* g_window;
 SDL_Renderer* g_renderer;
 bool g_flag_running;
 Uint32 g_last_time_ms;
+int g_current_game_phase;
 
 int main(int argc, char* argv[]) {
 
@@ -20,7 +24,17 @@ int main(int argc, char* argv[]) {
 	g_renderer = SDL_CreateRenderer(g_window, -1, 0);
 	InitGame();
 
+	PhaseInterface* game_phases[3];
+
+	game_phases[PHASE_INTRO] = new Intro;
+	game_phases[PHASE_STAGE1] = new Stage1;
+	game_phases[PHASE_ENDING] = new Ending;
+
+	g_current_game_phase = PHASE_INTRO;
+
 	g_last_time_ms = SDL_GetTicks();
+
+	bool flag_stage1 = false;
 
 	while (g_flag_running) {
 
@@ -29,21 +43,33 @@ int main(int argc, char* argv[]) {
 		if (cur_time_ms - g_last_time_ms < 33)
 			continue;
 
-		HandleEvents();
-		Update();
-		Render();
+		
+		/*if (g_current_game_phase == 2 && !flag_stage1)
+		{
+			flag_stage1 = true;
+			game_phases[g_current_game_phase]->
+		}*/
+
+		game_phases[g_current_game_phase]->HandleEvents();
+		game_phases[g_current_game_phase]->Update();
+		game_phases[g_current_game_phase]->Render();
 
 		SDL_Delay(30);	// 30 밀리세컨드 기다린다.
 		g_last_time_ms = cur_time_ms;
 	}
 
+	ClearGame();
+
+	for (int i = 0; i < 3; i++)
+	{
+		delete game_phases[i];
+	}
+
 	SDL_DestroyRenderer(g_renderer);
 	SDL_DestroyWindow(g_window);
 
-	ClearGame();
-
+	Mix_CloseAudio();
 	SDL_Quit();
-	TTF_Quit();
 
 	return 0;
 }
