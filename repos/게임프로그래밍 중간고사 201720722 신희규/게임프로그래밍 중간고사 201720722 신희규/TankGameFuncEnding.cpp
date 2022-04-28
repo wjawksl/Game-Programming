@@ -1,5 +1,6 @@
 #include "GameFunc.h"
 #include "TankGameFuncEnding.h"
+#include "TankGameFuncStage1.h"
 
 Ending::Ending()
 {
@@ -51,7 +52,7 @@ void Ending::HandleEvents()
 
 			// If the mouse left button is pressed. 
 			if (event.button.button == SDL_BUTTON_LEFT)
-			{
+			{				
 				g_current_game_phase = PHASE_INTRO;
 			}
 			break;

@@ -65,7 +65,6 @@ Stage1::Stage1()
 	{
 		missile_arr[i] = Missile(false, -1, g_destination_tank, g_missile_sheet_texture);
 	}
-
 	// Clear the console screen.
 	// 표준출력 화면을 깨끗히 지운다.
 	system("cls");
@@ -204,7 +203,8 @@ void Stage1::HandleEvents()
 
 			// If the mouse left button is pressed. 
 			if (event.button.button == SDL_BUTTON_LEFT)
-			{
+			{				
+				delete game_phases[g_current_game_phase];
 				g_current_game_phase = PHASE_ENDING;
 			}
 			break;
@@ -222,21 +222,27 @@ void Stage1::HandleEvents()
 // ClearGame() 대신 소멸자 사용
 Stage1::~Stage1()
 {
-	SDL_DestroyTexture(g_bg_sheet_texture);
+	SDL_DestroyTexture(g_bg_sheet_texture); // 배경 메모리 해제
 	SDL_DestroyTexture(g_tank_sheet_texture); // 탱크 메모리 해제
 	SDL_DestroyTexture(g_box_sheet_texture); // 보물 상자 메모리 해제
 	SDL_DestroyTexture(g_charactor_sheet_texture); // 캐릭터 메모리 해제
 	SDL_DestroyTexture(g_missile_cnt_texture); // 잔여 미사일 수 텍스쳐 메모리 해제
+	SDL_DestroyTexture(g_board_text_kr); // 탑승중 텍스트 해제
 	TTF_CloseFont(g_font); // 폰트 메모리 해제
 
 	for (int i = 0; i < SIZE; i++)
 	{
 		SDL_DestroyTexture(missile_arr[i].missile_sheet_texture); // 미사일 메모리 해제
+		missile_arr[i].~Missile();
 	}
+	
 	Mix_FreeMusic(g_bg_mus);
 	Mix_FreeChunk(g_missile_fire_sound);
 	Mix_FreeChunk(g_open_box_sound);
 	Mix_FreeChunk(g_ride_tank_sound);
+
+	
+	
 }
 
 void Stage1::MakeGameObjTextures()

@@ -7,6 +7,7 @@
 #include "SDL_mixer.h"
 #include "SDL_image.h"
 
+
 void InitGame();
 void ClearGame();
 
@@ -23,7 +24,12 @@ extern SDL_Renderer* g_renderer;
 class PhaseInterface
 {
 public:
+	PhaseInterface() = default;
+	virtual ~PhaseInterface() = default;
+
 	virtual void HandleEvents() = 0;
 	virtual void Update() = 0;
 	virtual void Render() = 0;
 };
+
+extern PhaseInterface* game_phases[3];

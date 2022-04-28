@@ -1,5 +1,6 @@
 #include "GameFunc.h"
 #include "TankGameFuncIntro.h"
+#include "TankGameFuncStage1.h"
 
 Intro::Intro()
 {
@@ -22,9 +23,7 @@ void Intro::Update()
 
 
 void Intro::Render()
-{
-	SDL_SetRenderDrawColor(g_renderer, 255, 255, 255, 255);
-	SDL_RenderClear(g_renderer); // clear the renderer to the draw color
+{	
 	SDL_RenderCopy(g_renderer, texture_intro_, &source_rectangle_intro_, &destination_rectangle_intro_);
 	SDL_RenderPresent(g_renderer); // draw to the screen
 }
@@ -46,8 +45,9 @@ void Intro::HandleEvents()
 
 			// If the mouse left button is pressed. 
 			if (event.button.button == SDL_BUTTON_LEFT)
-			{
+			{								
 				g_current_game_phase = PHASE_STAGE1;
+				game_phases[PHASE_STAGE1] = new Stage1;
 			}
 			break;
 

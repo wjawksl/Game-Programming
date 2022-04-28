@@ -5,7 +5,7 @@ class Ending : public PhaseInterface
 {
 public:
 	Ending();
-	~Ending();
+	virtual ~Ending();
 
 	virtual void HandleEvents() override;
 	virtual void Update() override;
