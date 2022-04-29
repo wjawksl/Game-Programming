@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
 	InitGame();
 
 	game_phases[PHASE_INTRO] = new Intro;
-	//game_phases[PHASE_STAGE1] = new Stage1;
 	game_phases[PHASE_ENDING] = new Ending;
 
 	g_current_game_phase = PHASE_INTRO;

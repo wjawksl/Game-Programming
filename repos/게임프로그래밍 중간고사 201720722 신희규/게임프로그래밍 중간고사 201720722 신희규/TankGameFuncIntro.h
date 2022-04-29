@@ -17,4 +17,9 @@ private:
 	SDL_Rect source_rectangle_intro_; // the rectangle for source image
 	SDL_Rect destination_rectangle_intro_; // for destination
 
+	SDL_Texture* g_game_start_text_kr;
+	SDL_Rect g_game_start_text_kr_rect;
+	TTF_Font* g_font_intro; // 게임 폰트 선언
+
+	SDL_Color black = { 0,0,0,0 };
 };

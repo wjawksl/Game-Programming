@@ -241,8 +241,6 @@ Stage1::~Stage1()
 	Mix_FreeChunk(g_open_box_sound);
 	Mix_FreeChunk(g_ride_tank_sound);
 
-	
-	
 }
 
 void Stage1::MakeGameObjTextures()
