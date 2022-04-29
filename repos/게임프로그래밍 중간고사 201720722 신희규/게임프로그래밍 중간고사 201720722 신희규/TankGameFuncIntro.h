@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameFunc.h"
+#include "SDL_mixer.h"
 
 class Intro : public PhaseInterface
 {
@@ -13,6 +14,8 @@ public:
 	virtual void Render() override;
 
 private:
+	Mix_Music* g_intro_mus; // 인트로 배경음악 변수 선언
+
 	SDL_Texture* texture_intro_; // the SDL_Texture 
 	SDL_Rect source_rectangle_intro_; // the rectangle for source image
 	SDL_Rect destination_rectangle_intro_; // for destination

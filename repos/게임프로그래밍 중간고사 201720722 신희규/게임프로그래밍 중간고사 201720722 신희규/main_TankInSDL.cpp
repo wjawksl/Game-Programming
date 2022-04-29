@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
 	InitGame();
 
 	game_phases[PHASE_INTRO] = new Intro;
-	game_phases[PHASE_ENDING] = new Ending;
 
 	g_current_game_phase = PHASE_INTRO;
 
@@ -41,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 		if (cur_time_ms - g_last_time_ms < 33)
 			continue;
-			
+
 		game_phases[g_current_game_phase]->HandleEvents();
 		game_phases[g_current_game_phase]->Update();
 		game_phases[g_current_game_phase]->Render();

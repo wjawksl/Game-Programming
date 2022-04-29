@@ -5,6 +5,12 @@
 
 Intro::Intro()
 {
+	g_intro_mus = Mix_LoadMUS("../../Resources/introBG.mp3"); // 배경음악 로드	
+	Mix_VolumeMusic(60);
+
+	if (g_current_game_phase == PHASE_INTRO)
+		Mix_FadeInMusic(g_intro_mus, -1, 2000); // 배경음악 플레이
+
 	// For Texture
 	SDL_Surface* temp_surface = IMG_Load("../../Resources/intro.jpg");
 	texture_intro_ = SDL_CreateTextureFromSurface(g_renderer, temp_surface);
@@ -34,7 +40,7 @@ void Intro::Update()
 
 
 void Intro::Render()
-{	
+{
 	SDL_Rect tmp_r; // 화면에 표시 될 위치
 
 	tmp_r.x = 175;
@@ -65,8 +71,10 @@ void Intro::HandleEvents()
 		case SDL_MOUSEBUTTONDOWN:
 
 			// If the mouse left button is pressed. 
-			if (event.button.button == SDL_BUTTON_LEFT)
-			{								
+			if (event.button.button == SDL_BUTTON_RIGHT)
+			{
+				Mix_HaltMusic();
+				delete game_phases[g_current_game_phase];
 				g_current_game_phase = PHASE_STAGE1;
 				game_phases[PHASE_STAGE1] = new Stage1;
 			}
@@ -83,4 +91,5 @@ Intro::~Intro()
 	SDL_DestroyTexture(g_game_start_text_kr); // 탑승중 텍스트 해제
 	TTF_CloseFont(g_font_intro); // 폰트 메모리 해제
 	SDL_DestroyTexture(texture_intro_);
+	Mix_FreeMusic(g_intro_mus);
 }

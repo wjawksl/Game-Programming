@@ -12,6 +12,8 @@ public:
 	virtual void Render() override;
 
 private:
+	Mix_Music* g_end_mus; // 엔딩 배경음악 변수 선언
+
 	SDL_Texture* texture_ending_; // the SDL_Texture 
 	SDL_Rect source_rectangle_ending_; // the rectangle for source image
 	SDL_Rect destination_rectangle_ending_; // for destination

@@ -15,7 +15,6 @@ public:
 	void FireMissile();
 	void DrawGameText();
 	void DrawMissile();
-	void InitBGM();
 	void InitChunk();
 	void InitTexts();
 	void MakeGameObjTextures();
@@ -35,7 +34,7 @@ private:
 		Missile() = default;
 		Missile(bool f, int a, SDL_Rect dm, SDL_Texture* mst) : flag(f), angle(a), destination_missile(dm), missile_sheet_texture(mst) {}
 		~Missile() = default;
-		
+
 		//flag 확인, angle변경, flag 변경 함수
 	};
 
@@ -93,6 +92,3 @@ private:
 	double g_elapsed_time_ms;
 
 };
-
-
-
