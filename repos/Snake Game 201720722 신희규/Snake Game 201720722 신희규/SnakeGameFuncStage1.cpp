@@ -34,6 +34,9 @@ void Stage1::Update() {
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
 void Stage1::Render() {
 	
+	SDL_SetRenderDrawColor(g_renderer, 255, 255, 255, 255);
+	SDL_RenderClear(g_renderer); // clear the renderer to the draw color
+
 	// 백에서 그린 그림을 한번에 가져옴
 	SDL_RenderPresent(g_renderer);
 }
@@ -66,8 +69,8 @@ void Stage1::HandleEvents()
 				g_key[3] = 1;
 			}
 			if (event.key.keysym.sym == SDLK_SPACE) {
-				g_key[4] = 1;
-			}
+				g_current_game_phase = PHASE_ENDING;
+			}			
 			break;
 
 		case SDL_KEYUP:

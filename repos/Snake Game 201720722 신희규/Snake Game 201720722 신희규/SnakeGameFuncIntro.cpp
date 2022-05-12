@@ -11,8 +11,14 @@ Intro::Intro()
 	if (g_current_game_phase == PHASE_INTRO)
 		Mix_FadeInMusic(g_intro_mus, -1, 2000); // 배경음악 플레이*/
 
+	// Button
+	g_button_rect.x = 250;
+	g_button_rect.y = 350;
+	g_button_rect.w = 200;
+	g_button_rect.h = 100;
+
 	// For Texture
-	SDL_Surface* temp_surface = IMG_Load("../../Resources/intro.jpg");
+	SDL_Surface* temp_surface = IMG_Load("../../Resources/intro.png");
 	texture_intro_ = SDL_CreateTextureFromSurface(g_renderer, temp_surface);
 	SDL_FreeSurface(temp_surface);
 
@@ -22,7 +28,7 @@ Intro::Intro()
 	destination_rectangle_intro_.w = 700;
 	destination_rectangle_intro_.h = 700;
 
-	g_font_intro = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 64);
+	g_font_intro = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 32);
 	SDL_Surface* tmp_surface_1 = TTF_RenderUTF8_Blended(g_font_intro, CW2A(L"Game Start", CP_UTF8), black);
 	//텍스트 가져오기
 	g_game_start_text_kr_rect.x = 0;
@@ -43,12 +49,15 @@ void Intro::Render()
 {
 	SDL_Rect tmp_r; // 화면에 표시 될 위치
 
-	tmp_r.x = 175;
-	tmp_r.y = 275;
+	tmp_r.x = 265;
+	tmp_r.y = 380;
 	tmp_r.w = g_game_start_text_kr_rect.w;
 	tmp_r.h = g_game_start_text_kr_rect.h;
 
 	SDL_RenderCopy(g_renderer, texture_intro_, &source_rectangle_intro_, &destination_rectangle_intro_);
+
+	SDL_SetRenderDrawColor(g_renderer, 127, 127, 127, 0);
+	SDL_RenderFillRect(g_renderer, &g_button_rect);
 
 	SDL_RenderCopy(g_renderer, g_game_start_text_kr, &g_game_start_text_kr_rect, &tmp_r); // 텍스트 표시
 
@@ -71,13 +80,25 @@ void Intro::HandleEvents()
 		case SDL_MOUSEBUTTONDOWN:
 
 			// If the mouse left button is pressed. 
-			if (event.button.button == SDL_BUTTON_RIGHT)
+			if (event.button.button == SDL_BUTTON_LEFT)
 			{
-				//Mix_HaltMusic();
+				// Get the cursor's x position.
+				int mouse_x = event.button.x;
+				int mouse_y = event.button.y;
 
-				/*delete game_phases[g_current_game_phase];
-				g_current_game_phase = PHASE_STAGE1;
-				game_phases[PHASE_STAGE1] = new Stage1;*/
+				if (mouse_x > g_button_rect.x &&
+					mouse_y > g_button_rect.y &&
+					mouse_x < g_button_rect.x + g_button_rect.w &&
+					mouse_y < g_button_rect.y + g_button_rect.h
+					)
+				{
+					
+					//delete game_phases[g_current_game_phase];
+					g_current_game_phase = PHASE_STAGE1;
+					//game_phases[PHASE_STAGE1] = new Stage1;
+				}
+
+				
 			}
 			break;
 

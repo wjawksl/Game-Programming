@@ -1,7 +1,7 @@
 #include "GameFunc.h"
-/*#include "TankGameFuncIntro.h"
-#include "TankGameFuncStage1.h"
-#include "TankGameFuncEnding.h"*/
+#include "SnakeGameFuncIntro.h"
+#include "SnakeGameFuncStage1.h"
+#include "SnakeGameFuncEnding.h"
 
 SDL_Window* g_window;
 SDL_Renderer* g_renderer;
@@ -26,7 +26,9 @@ int main(int argc, char* argv[]) {
 	g_renderer = SDL_CreateRenderer(g_window, -1, 0);
 	InitGame();
 
-	//game_phases[PHASE_INTRO] = new Intro;
+	game_phases[PHASE_INTRO] = new Intro;
+	game_phases[PHASE_STAGE1] = new Stage1;
+	game_phases[PHASE_ENDING] = new Ending;
 
 	g_current_game_phase = PHASE_INTRO;
 
