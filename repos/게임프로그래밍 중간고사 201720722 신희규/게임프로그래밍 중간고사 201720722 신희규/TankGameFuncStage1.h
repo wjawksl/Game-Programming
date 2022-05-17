@@ -40,7 +40,7 @@ private:
 
 	Missile* missile_arr;
 
-	int g_key[5];
+	int g_cur_key[5];
 	int dx[4] = { 0,1,0,-1 }; // 위, 오른쪽, 아래, 왼쪽
 	int dy[4] = { -1,0,1,0 };
 

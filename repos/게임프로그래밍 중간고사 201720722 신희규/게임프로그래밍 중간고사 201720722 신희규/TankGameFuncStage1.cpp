@@ -83,7 +83,7 @@ void Stage1::Update() {
 	if (!g_flag_boarding)
 	{
 		PlayerMove();
-		if (g_key[4]) {
+		if (g_cur_key[4]) {
 
 			if (g_flag_interaction) return;
 			g_flag_interaction = true;
@@ -103,7 +103,7 @@ void Stage1::Update() {
 	else
 	{
 		TankMoveAndFire();
-		if (g_key[4])
+		if (g_cur_key[4])
 		{
 			if (g_flag_interaction) return;
 			g_flag_interaction = true;
@@ -160,19 +160,19 @@ void Stage1::HandleEvents()
 
 		case SDL_KEYDOWN:
 			if (event.key.keysym.sym == SDLK_LEFT) {
-				g_key[0] = 1;
+				g_cur_key[0] = 1;
 			}
 			if (event.key.keysym.sym == SDLK_RIGHT) {
-				g_key[1] = 1;
+				g_cur_key[1] = 1;
 			}
 			if (event.key.keysym.sym == SDLK_UP) {
-				g_key[2] = 1;
+				g_cur_key[2] = 1;
 			}
 			if (event.key.keysym.sym == SDLK_DOWN) {
-				g_key[3] = 1;
+				g_cur_key[3] = 1;
 			}
 			if (event.key.keysym.sym == SDLK_SPACE) {
-				g_key[4] = 1;
+				g_cur_key[4] = 1;
 			}
 			break;
 
@@ -180,20 +180,20 @@ void Stage1::HandleEvents()
 			if (g_flag_boarding && g_flag_firing) g_flag_firing = false;
 
 			if (event.key.keysym.sym == SDLK_LEFT) {
-				g_key[0] = 0;
+				g_cur_key[0] = 0;
 			}
 			if (event.key.keysym.sym == SDLK_RIGHT) {
-				g_key[1] = 0;
+				g_cur_key[1] = 0;
 			}
 			if (event.key.keysym.sym == SDLK_UP) {
-				g_key[2] = 0;
+				g_cur_key[2] = 0;
 			}
 			if (event.key.keysym.sym == SDLK_DOWN) {
-				g_key[3] = 0;
+				g_cur_key[3] = 0;
 			}
 			if (event.key.keysym.sym == SDLK_SPACE) {
 				if (g_flag_interaction) g_flag_interaction = false;
-				g_key[4] = 0;
+				g_cur_key[4] = 0;
 			}
 			break;
 
@@ -284,40 +284,40 @@ void Stage1::DrawMissile()
 }
 void Stage1::PlayerMove()
 {
-	if (g_key[0]) {
+	if (g_cur_key[0]) {
 		g_destination_charactor.x -= 10;
 	}
-	if (g_key[1]) {
+	if (g_cur_key[1]) {
 		g_destination_charactor.x += 10;
 	}
-	if (g_key[2]) {
+	if (g_cur_key[2]) {
 		g_destination_charactor.y -= 10;
 	}
-	if (g_key[3]) {
+	if (g_cur_key[3]) {
 		g_destination_charactor.y += 10;
 	}
 }
 void Stage1::TankMoveAndFire()
 {
-	if (g_key[0]) {
+	if (g_cur_key[0]) {
 		g_tank_angle = 3;
 
 		if (g_missile_cnt > 0)
 			FireMissile();
 	}
-	if (g_key[1]) {
+	if (g_cur_key[1]) {
 		g_tank_angle = 1;
 
 		if (g_missile_cnt > 0)
 			FireMissile();
 	}
-	if (g_key[2]) {
+	if (g_cur_key[2]) {
 		g_tank_angle = 0;
 
 		if (g_missile_cnt > 0)
 			FireMissile();
 	}
-	if (g_key[3]) {
+	if (g_cur_key[3]) {
 		g_tank_angle = 2;
 
 		if (g_missile_cnt > 0)

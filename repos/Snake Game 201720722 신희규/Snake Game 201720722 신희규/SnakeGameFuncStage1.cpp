@@ -5,13 +5,45 @@
 #include "SnakeGameFuncEnding.h"
 #include <atlstr.h> // 한국어 쓰려면 필요함
 
+#define SIZE 8
 using namespace std;
 
-#define SIZE 8
+enum Key
+{
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN
+};
 
+ 
 // Init() 대신 생성자를 사용함
 Stage1::Stage1()
 {	
+	MakeGameObjTextures();
+
+	g_bg_source_rect.x = 0; // 배경화면 가져오기
+	g_bg_source_rect.y = 0;
+	g_bg_source_rect.w = 447;
+	g_bg_source_rect.h = 446;
+
+	g_destination_bg.x = 0; // 배경화면1 위치 설정
+	g_destination_bg.y = 0;
+	g_destination_bg.w = 700;
+	g_destination_bg.h = 700;
+
+	g_snake_source_rect.x = 498; // 배경화면 가져오기
+	g_snake_source_rect.y = 75;
+	g_snake_source_rect.w = 136;
+	g_snake_source_rect.h = 135;
+
+	g_destination_snake.x = 100; // 배경화면1 위치 설정
+	g_destination_snake.y = 100;
+	g_destination_snake.w = 50;
+	g_destination_snake.h = 50;
+
+	MakeSnake(g_destination_snake);
+
 	// Clear the console screen.
 	// 표준출력 화면을 깨끗히 지운다.
 	system("cls");
@@ -26,6 +58,7 @@ Stage1::Stage1()
 void Stage1::Update() {
 
 	g_elapsed_time_ms += 33;
+	SnakeMove();
 }
 
 /////////////////////////////////////////////////////////////
@@ -34,8 +67,13 @@ void Stage1::Update() {
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
 void Stage1::Render() {
 	
-	SDL_SetRenderDrawColor(g_renderer, 255, 255, 255, 255);
-	SDL_RenderClear(g_renderer); // clear the renderer to the draw color
+	SDL_RenderCopy(g_renderer, g_bg_sheet_texture, &g_bg_source_rect, &g_destination_bg); // texture를 복사해서 화면에 나타내주는 함수
+
+	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
+	{
+		SDL_RenderCopy(g_renderer, g_snake_sheet_texture, &g_snake_source_rect, &iter->destination_snake);
+	}
+		
 
 	// 백에서 그린 그림을 한번에 가져옴
 	SDL_RenderPresent(g_renderer);
@@ -56,42 +94,44 @@ void Stage1::HandleEvents()
 			break;
 
 		case SDL_KEYDOWN:
-			if (event.key.keysym.sym == SDLK_LEFT) {
-				g_key[0] = 1;
+			g_last_key = g_cur_key;
+			if (event.key.keysym.sym == SDLK_LEFT) {				
+				g_cur_key = Key::LEFT;				
 			}
 			if (event.key.keysym.sym == SDLK_RIGHT) {
-				g_key[1] = 1;
+				g_cur_key = Key::RIGHT;
 			}
 			if (event.key.keysym.sym == SDLK_UP) {
-				g_key[2] = 1;
+				g_cur_key = Key::UP;
 			}
 			if (event.key.keysym.sym == SDLK_DOWN) {
-				g_key[3] = 1;
+				g_cur_key = Key::DOWN;
 			}
-			if (event.key.keysym.sym == SDLK_SPACE) {
-				g_current_game_phase = PHASE_ENDING;
-			}			
-			break;
+			if (event.key.keysym.sym == SDLK_q)
+			{
+				Snake front = snakeList.front();
 
-		case SDL_KEYUP:
-		
-			if (event.key.keysym.sym == SDLK_LEFT) {
-				g_key[0] = 0;
-			}
-			if (event.key.keysym.sym == SDLK_RIGHT) {
-				g_key[1] = 0;
-			}
-			if (event.key.keysym.sym == SDLK_UP) {
-				g_key[2] = 0;
-			}
-			if (event.key.keysym.sym == SDLK_DOWN) {
-				g_key[3] = 0;
+				if (g_cur_key == Key::LEFT) {
+					front.destination_snake.x -= 50;
+				}
+				else if (g_cur_key == Key::RIGHT) {
+					front.destination_snake.x += 50;
+				}
+				else if (g_cur_key == Key::UP) {
+					front.destination_snake.y -= 50;
+				}
+				else if (g_cur_key == Key::DOWN) {
+					front.destination_snake.y += 50;
+				}
+
+				MakeSnake(front);
 			}
 			if (event.key.keysym.sym == SDLK_SPACE) {				
-				g_key[4] = 0;
-			}
+				g_current_game_phase = PHASE_ENDING;				
+			}	
+			
 			break;
-
+		
 		case SDL_MOUSEBUTTONDOWN:
 
 			// If the mouse left button is pressed. 
@@ -125,30 +165,56 @@ Stage1::~Stage1()
 
 void Stage1::MakeGameObjTextures()
 {
-	/*SDL_Surface* bg_sheet_surface = IMG_Load("../../Resources/BG.png"); // 이미지 파일을 가져옴
+	SDL_Surface* bg_sheet_surface = IMG_Load("../../Resources/BG.png"); // 이미지 파일을 가져옴
 	g_bg_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, bg_sheet_surface);
 
+	SDL_Surface* snake_sheet_surface = IMG_Load("../../Resources/snake.png"); // 이미지 파일을 가져옴
+	SDL_SetColorKey(snake_sheet_surface, SDL_TRUE, SDL_MapRGB(snake_sheet_surface->format, 255, 255, 255));
+	g_snake_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, snake_sheet_surface);
 	
-	SDL_FreeSurface(bg_sheet_surface);*/
+	SDL_FreeSurface(bg_sheet_surface);
+	SDL_FreeSurface(snake_sheet_surface);
 	
 }
 
-void Stage1::PlayerMove()
+void Stage1::SnakeMove()
+{	
+	Uint32 cur_time_ms = SDL_GetTicks();
+
+	if (cur_time_ms - g_stage_last_time_ms < 150) return;
+		
+	Snake back = snakeList.back();
+	SDL_Rect curRect = snakeList.front().destination_snake;
+	back.destination_snake = curRect;
+
+	if (g_cur_key == Key::LEFT) {
+		back.destination_snake.x = curRect.x - 50;
+	}
+	else if (g_cur_key == Key::RIGHT) {
+		back.destination_snake.x = curRect.x + 50;
+	}
+	else if (g_cur_key == Key::UP) {
+
+		back.destination_snake.y = curRect.y - 50;
+	}
+	else if (g_cur_key == Key::DOWN) {
+		back.destination_snake.y = curRect.y + 50;
+	}
+	if (g_cur_key != -1)
+	{
+		snakeList.push_front(back);
+		snakeList.pop_back();
+	}
+
+	SDL_Delay(30);	// 30 밀리세컨드 기다린다.
+	g_stage_last_time_ms = cur_time_ms;
+}
+
+void Stage1::MakeSnake(Snake snake)
 {
-	/*if (g_key[0]) {
-		g_destination_charactor.x -= 10;
-	}
-	if (g_key[1]) {
-		g_destination_charactor.x += 10;
-	}
-	if (g_key[2]) {
-		g_destination_charactor.y -= 10;
-	}
-	if (g_key[3]) {
-		g_destination_charactor.y += 10;
-	}*/
+	Snake newSnake = Snake(snake.destination_snake);
+	snakeList.push_back(snake);
 }
-
 bool Stage1::DistinctObject(SDL_Rect rect)
 {
 	/*int player_x = g_destination_charactor.x;

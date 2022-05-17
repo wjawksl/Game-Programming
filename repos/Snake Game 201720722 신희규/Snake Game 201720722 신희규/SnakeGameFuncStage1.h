@@ -1,29 +1,24 @@
 #pragma once
 
 #include "GameFunc.h"
+#include<list>
+
+using namespace std;
 
 class Stage1 : public PhaseInterface
 {
-public:
-	Stage1();
-	virtual ~Stage1();
-
-	virtual void HandleEvents() override;
-	virtual void Update() override;
-	virtual void Render() override;
-
-	//void FireMissile();
-	void DrawGameText();
-	//void DrawMissile();
-	void InitChunk();
-	void InitTexts();
-	void MakeGameObjTextures();
-	bool DistinctObject(SDL_Rect rect);
-	void PlayerMove();
-	//void TankMoveAndFire();
-	//void UpdateMissile();
-
 private:
+	class Snake {
+	private:
+
+	public:				
+		SDL_Rect destination_snake;
+
+		Snake(SDL_Rect ds)
+			: destination_snake(ds)
+		{}
+	};
+	list<Snake> snakeList;
 	/*class Missile {
 	public:
 		bool flag; // 전체 public 선언
@@ -40,7 +35,8 @@ private:
 
 	//Missile* missile_arr;
 
-	int g_key[5];
+	int g_cur_key = -1, g_last_key = -1;
+	int g_stage_last_time_ms;
 	/*int dx[4] = {0,1,0,-1}; // 위, 오른쪽, 아래, 왼쪽
 	int dy[4] = { -1,0,1,0 };
 
@@ -65,21 +61,24 @@ private:
 
 	SDL_Texture* g_tank_sheet_texture; // 각 이미지들의 텍스쳐 선언
 	SDL_Texture* g_missile_sheet_texture;
-	SDL_Texture* g_bg_sheet_texture;
 
-	SDL_Rect g_bg_source_rect; // 배경 이미지에서 잘라오는 부분
-	SDL_Rect g_destination_bg;
 
 	SDL_Rect g_tank_source_rect; // 비행기 이미지에서 잘라오는 부분
 	SDL_Rect g_destination_tank;
 
 	SDL_Rect g_missile_source_rect; // 미사일 이미지에서 잘라오는 부분
 	SDL_Rect g_destination_missile;
+	*/
+	SDL_Texture* g_bg_sheet_texture;
 
-	SDL_Rect g_charactor_source_rect; // 캐릭터 이미지에서 잘라오는 부분
-	SDL_Rect g_destination_charactor;
-	SDL_Texture* g_charactor_sheet_texture;
+	SDL_Rect g_bg_source_rect; // 배경 이미지에서 잘라오는 부분
+	SDL_Rect g_destination_bg;
 
+	SDL_Rect g_snake_source_rect; // 캐릭터 이미지에서 잘라오는 부분
+	SDL_Texture* g_snake_sheet_texture;
+	SDL_Rect g_destination_snake;
+
+	/*
 	SDL_Rect g_box_source_rect; // 캐릭터 이미지에서 잘라오는 부분
 	SDL_Rect g_destination_box;
 	SDL_Texture* g_box_sheet_texture;
@@ -90,5 +89,27 @@ private:
 	SDL_Rect g_board_text_kr_rect;*/
 	// 흘러간 시간 기록
 	double g_elapsed_time_ms;
+
+public:
+	Stage1();
+	virtual ~Stage1();
+
+	virtual void HandleEvents() override;
+	virtual void Update() override;
+	virtual void Render() override;
+
+	//void FireMissile();
+	void DrawGameText();
+	//void DrawMissile();
+	void InitChunk();
+	void InitTexts();
+	void MakeGameObjTextures();
+	bool DistinctObject(SDL_Rect rect);
+	void SnakeMove();
+	void MakeSnake(Snake snake);
+	//void TankMoveAndFire();
+	//void UpdateMissile();
+
+
 
 };

@@ -94,7 +94,7 @@ void Intro::HandleEvents()
 				{
 					
 					//delete game_phases[g_current_game_phase];
-					g_current_game_phase = PHASE_STAGE1;
+					g_current_game_phase = PHASE_STAGE1;					
 					//game_phases[PHASE_STAGE1] = new Stage1;
 				}
 

@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 	g_last_time_ms = SDL_GetTicks();
 
 	bool flag_stage1 = false;
-
+	
 	while (g_flag_running) {
 
 		Uint32 cur_time_ms = SDL_GetTicks();
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 		game_phases[g_current_game_phase]->HandleEvents();
 		game_phases[g_current_game_phase]->Update();
 		game_phases[g_current_game_phase]->Render();
-
+	
 		SDL_Delay(30);	// 30 밀리세컨드 기다린다.
 		g_last_time_ms = cur_time_ms;
 	}
