@@ -21,26 +21,39 @@ enum Key
 Stage1::Stage1()
 {	
 	MakeGameObjTextures();
+	InitTexts();
+
+	g_stage_flag_running = true;
 
 	g_bg_source_rect.x = 0; // 배경화면 가져오기
 	g_bg_source_rect.y = 0;
 	g_bg_source_rect.w = 447;
 	g_bg_source_rect.h = 446;
 
-	g_destination_bg.x = 0; // 배경화면1 위치 설정
+	g_destination_bg.x = 0; // 배경화면 위치 설정
 	g_destination_bg.y = 0;
 	g_destination_bg.w = 700;
 	g_destination_bg.h = 700;
 
-	g_snake_source_rect.x = 498; // 배경화면 가져오기
+	g_snake_source_rect.x = 498; // 뱀 가져오기
 	g_snake_source_rect.y = 75;
 	g_snake_source_rect.w = 136;
 	g_snake_source_rect.h = 135;
 
-	g_destination_snake.x = 100; // 배경화면1 위치 설정
+	g_destination_snake.x = 100; // 뱀 위치 설정
 	g_destination_snake.y = 100;
 	g_destination_snake.w = 50;
 	g_destination_snake.h = 50;
+
+	g_apple_source_rect.x = 145; // 사과 가져오기
+	g_apple_source_rect.y = 138;
+	g_apple_source_rect.w = 392;
+	g_apple_source_rect.h = 421;
+
+	g_destination_apple.x = 500; // 사과 위치 설정
+	g_destination_apple.y = 500;
+	g_destination_apple.w = 50;
+	g_destination_apple.h = 50;
 
 	MakeSnake(g_destination_snake);
 
@@ -72,8 +85,12 @@ void Stage1::Render() {
 	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
 	{
 		SDL_RenderCopy(g_renderer, g_snake_sheet_texture, &g_snake_source_rect, &iter->destination_snake);
-	}
-		
+	}	
+
+	SDL_RenderCopy(g_renderer, g_apple_sheet_texture, &g_apple_source_rect, &g_destination_apple); // texture를 복사해서 화면에 나타내주는 함수
+
+	if(!g_stage_flag_running)
+		DrawGameOverText();
 
 	// 백에서 그린 그림을 한번에 가져옴
 	SDL_RenderPresent(g_renderer);
@@ -171,19 +188,28 @@ void Stage1::MakeGameObjTextures()
 	SDL_Surface* snake_sheet_surface = IMG_Load("../../Resources/snake.png"); // 이미지 파일을 가져옴
 	SDL_SetColorKey(snake_sheet_surface, SDL_TRUE, SDL_MapRGB(snake_sheet_surface->format, 255, 255, 255));
 	g_snake_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, snake_sheet_surface);
+
+	SDL_Surface* apple_sheet_surface = IMG_Load("../../Resources/apple.png"); // 이미지 파일을 가져옴
+	SDL_SetColorKey(apple_sheet_surface, SDL_TRUE, SDL_MapRGB(apple_sheet_surface->format, 255, 255, 255));
+	g_apple_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, apple_sheet_surface);
 	
 	SDL_FreeSurface(bg_sheet_surface);
 	SDL_FreeSurface(snake_sheet_surface);
+	SDL_FreeSurface(apple_sheet_surface);
 	
 }
 
 void Stage1::SnakeMove()
 {	
+	if (!g_stage_flag_running) return;
+
+	
 	Uint32 cur_time_ms = SDL_GetTicks();
 
 	if (cur_time_ms - g_stage_last_time_ms < 150) return;
 		
 	Snake back = snakeList.back();
+	
 	SDL_Rect curRect = snakeList.front().destination_snake;
 	back.destination_snake = curRect;
 
@@ -201,7 +227,10 @@ void Stage1::SnakeMove()
 		back.destination_snake.y = curRect.y + 50;
 	}
 	if (g_cur_key != -1)
-	{
+	{	
+		CheckIsGameOver(back.destination_snake);
+		if (!g_stage_flag_running) return;
+		
 		snakeList.push_front(back);
 		snakeList.pop_back();
 	}
@@ -213,7 +242,30 @@ void Stage1::SnakeMove()
 void Stage1::MakeSnake(Snake snake)
 {
 	Snake newSnake = Snake(snake.destination_snake);
-	snakeList.push_back(snake);
+	snakeList.push_front(snake);
+}
+void Stage1::CheckIsGameOver(SDL_Rect snakeHeadRect)
+{
+	
+	if ((snakeHeadRect.x < 0 || 650 < snakeHeadRect.x) ||
+		(snakeHeadRect.y < 0 || 650 < snakeHeadRect.y))
+	{
+		g_stage_flag_running = false; return;
+	}
+	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
+	{
+		if (iter == snakeList.begin()) continue;		
+
+		if ((snakeHeadRect.x == iter->destination_snake.x) &&
+			(snakeHeadRect.y == iter->destination_snake.y))
+		{						
+			g_stage_flag_running = false; break;
+		}
+	}	
+}
+void Stage1::CreateApple()
+{
+
 }
 bool Stage1::DistinctObject(SDL_Rect rect)
 {
@@ -231,41 +283,20 @@ bool Stage1::DistinctObject(SDL_Rect rect)
 
 	return false;*/
 }
-
 void Stage1::DrawGameText()
 {
-	/*// Draw Score (Korean)
+
+}
+void Stage1::DrawGameOverText()
+{
 	SDL_Rect tmp_r; // 화면에 표시 될 위치
 
-	if (g_flag_boarding)
-	{
-		tmp_r.x = 100;
-		tmp_r.y = 650;
-		tmp_r.w = g_board_text_kr_rect.w;
-		tmp_r.h = g_board_text_kr_rect.h;
-		SDL_RenderCopy(g_renderer, g_board_text_kr, &g_board_text_kr_rect, &tmp_r);
-	}
+	tmp_r.x = 265;
+	tmp_r.y = 325;
+	tmp_r.w = g_gameover_text_kr_rect.w;
+	tmp_r.h = g_gameover_text_kr_rect.h;
 
-	// Draw Score (Number)
-	string missile_cnt_str = to_string(g_missile_cnt);
-	const char* cstr = missile_cnt_str.c_str();
-	SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(g_font, cstr, black);
-
-	g_missile_cnt_rect.x = 0;
-	g_missile_cnt_rect.y = 0;
-	g_missile_cnt_rect.w = tmp_surface->w;
-	g_missile_cnt_rect.h = tmp_surface->h;
-
-	g_missile_cnt_texture = SDL_CreateTextureFromSurface(g_renderer, tmp_surface);
-	SDL_FreeSurface(tmp_surface); // 계속 해제해줘야함
-
-	tmp_r.x = 650;
-	tmp_r.y = 650;
-	tmp_r.w = g_missile_cnt_rect.w;
-	tmp_r.h = g_missile_cnt_rect.h;
-
-	SDL_RenderCopy(g_renderer, g_missile_cnt_texture, &g_missile_cnt_rect, &tmp_r);
-	SDL_DestroyTexture(g_missile_cnt_texture); // 계속 해제해줘야함*/
+	SDL_RenderCopy(g_renderer, g_gameover_text_kr, &g_gameover_text_kr_rect, &tmp_r); // 텍스트 표시
 }
 void Stage1::InitChunk()
 {
@@ -281,18 +312,14 @@ void Stage1::InitChunk()
 }
 void Stage1::InitTexts()
 {
-	/*// scoreText_kr Title
-	g_font = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 28);
-	SDL_Surface* tmp_surface = TTF_RenderUTF8_Blended(g_font, CW2A(L"탑승중", CP_UTF8), black);
+	g_font_gameover = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 32);
+	SDL_Surface* tmp_surface_1 = TTF_RenderUTF8_Blended(g_font_gameover, CW2A(L"Game Over!", CP_UTF8), black);
 	//텍스트 가져오기
-	g_board_text_kr_rect.x = 0;
-	g_board_text_kr_rect.y = 0;
-	g_board_text_kr_rect.w = tmp_surface->w;
-	g_board_text_kr_rect.h = tmp_surface->h;
+	g_gameover_text_kr_rect.x = 0;
+	g_gameover_text_kr_rect.y = 0;
+	g_gameover_text_kr_rect.w = tmp_surface_1->w;
+	g_gameover_text_kr_rect.h = tmp_surface_1->h;
 
-	g_board_text_kr = SDL_CreateTextureFromSurface(g_renderer, tmp_surface);
-	SDL_FreeSurface(tmp_surface);
-
-	// scoreText_num
-	g_font = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 28); // 전역변수 선언*/
+	g_gameover_text_kr = SDL_CreateTextureFromSurface(g_renderer, tmp_surface_1);
+	SDL_FreeSurface(tmp_surface_1);
 }

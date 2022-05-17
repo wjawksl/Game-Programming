@@ -26,7 +26,7 @@ private:
 	TTF_Font* g_font_intro; // 게임 폰트 선언
 
 	//SDL_Texture* g_button_rect_texture;
-	SDL_Rect g_button_rect;
+	SDL_Rect g_start_button_rect;
 
 	SDL_Color black = { 0,0,0,0 };
 };

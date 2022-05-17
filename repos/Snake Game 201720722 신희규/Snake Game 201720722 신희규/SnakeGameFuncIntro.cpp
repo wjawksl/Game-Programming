@@ -12,10 +12,10 @@ Intro::Intro()
 		Mix_FadeInMusic(g_intro_mus, -1, 2000); // 배경음악 플레이*/
 
 	// Button
-	g_button_rect.x = 250;
-	g_button_rect.y = 350;
-	g_button_rect.w = 200;
-	g_button_rect.h = 100;
+	g_start_button_rect.x = 250;
+	g_start_button_rect.y = 350;
+	g_start_button_rect.w = 200;
+	g_start_button_rect.h = 100;
 
 	// For Texture
 	SDL_Surface* temp_surface = IMG_Load("../../Resources/intro.png");
@@ -57,7 +57,7 @@ void Intro::Render()
 	SDL_RenderCopy(g_renderer, texture_intro_, &source_rectangle_intro_, &destination_rectangle_intro_);
 
 	SDL_SetRenderDrawColor(g_renderer, 127, 127, 127, 0);
-	SDL_RenderFillRect(g_renderer, &g_button_rect);
+	SDL_RenderFillRect(g_renderer, &g_start_button_rect);
 
 	SDL_RenderCopy(g_renderer, g_game_start_text_kr, &g_game_start_text_kr_rect, &tmp_r); // 텍스트 표시
 
@@ -86,10 +86,10 @@ void Intro::HandleEvents()
 				int mouse_x = event.button.x;
 				int mouse_y = event.button.y;
 
-				if (mouse_x > g_button_rect.x &&
-					mouse_y > g_button_rect.y &&
-					mouse_x < g_button_rect.x + g_button_rect.w &&
-					mouse_y < g_button_rect.y + g_button_rect.h
+				if (mouse_x > g_start_button_rect.x &&
+					mouse_y > g_start_button_rect.y &&
+					mouse_x < g_start_button_rect.x + g_start_button_rect.w &&
+					mouse_y < g_start_button_rect.y + g_start_button_rect.h
 					)
 				{
 					

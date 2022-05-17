@@ -19,24 +19,28 @@ private:
 		{}
 	};
 	list<Snake> snakeList;
-	/*class Missile {
-	public:
-		bool flag; // 전체 public 선언
-		int angle;
-		SDL_Rect destination_missile;
-		SDL_Texture* missile_sheet_texture;
+	
+	
+	SDL_Rect g_bg_source_rect; // 배경 이미지에서 잘라오는 부분
+	SDL_Texture* g_bg_sheet_texture;
+	SDL_Rect g_destination_bg;
 
-		Missile() = default;
-		Missile(bool f, int a, SDL_Rect dm, SDL_Texture* mst) : flag(f), angle(a), destination_missile(dm), missile_sheet_texture(mst) {}
-		~Missile() = default;
+	SDL_Rect g_snake_source_rect; // 캐릭터 이미지에서 잘라오는 부분
+	SDL_Texture* g_snake_sheet_texture;
+	SDL_Rect g_destination_snake;
 
-		//flag 확인, angle변경, flag 변경 함수
-	};*/
+	SDL_Rect g_apple_source_rect; // 사과 이미지에서 잘라오는 부분
+	SDL_Texture* g_apple_sheet_texture;
+	SDL_Rect g_destination_apple;
 
-	//Missile* missile_arr;
+	TTF_Font* g_font_gameover; // 게임 폰트 선언
+	SDL_Texture* g_gameover_text_kr;
+	SDL_Rect g_gameover_text_kr_rect;
+	SDL_Color black = { 0, 0, 0, 0 }; // 색깔 선언
 
 	int g_cur_key = -1, g_last_key = -1;
 	int g_stage_last_time_ms;
+	bool g_stage_flag_running;
 	/*int dx[4] = {0,1,0,-1}; // 위, 오른쪽, 아래, 왼쪽
 	int dy[4] = { -1,0,1,0 };
 
@@ -69,14 +73,7 @@ private:
 	SDL_Rect g_missile_source_rect; // 미사일 이미지에서 잘라오는 부분
 	SDL_Rect g_destination_missile;
 	*/
-	SDL_Texture* g_bg_sheet_texture;
-
-	SDL_Rect g_bg_source_rect; // 배경 이미지에서 잘라오는 부분
-	SDL_Rect g_destination_bg;
-
-	SDL_Rect g_snake_source_rect; // 캐릭터 이미지에서 잘라오는 부분
-	SDL_Texture* g_snake_sheet_texture;
-	SDL_Rect g_destination_snake;
+	
 
 	/*
 	SDL_Rect g_box_source_rect; // 캐릭터 이미지에서 잘라오는 부분
@@ -100,6 +97,7 @@ public:
 
 	//void FireMissile();
 	void DrawGameText();
+	void DrawGameOverText();
 	//void DrawMissile();
 	void InitChunk();
 	void InitTexts();
@@ -107,6 +105,8 @@ public:
 	bool DistinctObject(SDL_Rect rect);
 	void SnakeMove();
 	void MakeSnake(Snake snake);
+	void CheckIsGameOver(SDL_Rect snakeHeadRect);
+	void CreateApple();
 	//void TankMoveAndFire();
 	//void UpdateMissile();
 
