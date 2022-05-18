@@ -17,17 +17,12 @@ enum Key
 	DOWN
 };
 
- 
 // Init() 대신 생성자를 사용함
 Stage1::Stage1()
 {	
 	MakeGameObjTextures();
 	InitTexts();
-
-	snakeList.clear();
-	g_stage_flag_running = true;
-	g_stage_is_colliding = false;
-
+	
 	g_bg_source_rect.x = 0; // 배경화면 가져오기
 	g_bg_source_rect.y = 0;
 	g_bg_source_rect.w = 447;
@@ -59,7 +54,8 @@ Stage1::Stage1()
 	g_destination_apple.w = 50;
 	g_destination_apple.h = 50;
 
-	MakeSnake();
+	//게임 오브젝트들의 초기화
+	InitGameObjectState();
 
 	// Clear the console screen.
 	// 표준출력 화면을 깨끗히 지운다.
@@ -117,33 +113,35 @@ void Stage1::HandleEvents()
 			g_flag_running = false;
 			break;
 
-		case SDL_KEYDOWN:
-			g_last_key = g_cur_key;
-			if (event.key.keysym.sym == SDLK_LEFT) {				
+		case SDL_KEYDOWN:			
+			if (event.key.keysym.sym == SDLK_LEFT && g_cur_key != Key::RIGHT) {				
 				g_cur_key = Key::LEFT;				
 			}
-			if (event.key.keysym.sym == SDLK_RIGHT) {
+			if (event.key.keysym.sym == SDLK_RIGHT && g_cur_key != Key::LEFT) {
 				g_cur_key = Key::RIGHT;
 			}
-			if (event.key.keysym.sym == SDLK_UP) {
+			if (event.key.keysym.sym == SDLK_UP && g_cur_key != Key::DOWN) {
 				g_cur_key = Key::UP;
 			}
-			if (event.key.keysym.sym == SDLK_DOWN) {
+			if (event.key.keysym.sym == SDLK_DOWN && g_cur_key != Key::UP) {
 				g_cur_key = Key::DOWN;
 			}			
 			if (event.key.keysym.sym == SDLK_SPACE) {				
 				g_current_game_phase = PHASE_ENDING;				
-			}	
-			
+			}				
 			break;
 		
 		case SDL_MOUSEBUTTONDOWN:
 
 			// If the mouse left button is pressed. 
-			if (event.button.button == SDL_BUTTON_RIGHT)
+			if (event.button.button == SDL_BUTTON_LEFT)
 			{
-				/*delete game_phases[g_current_game_phase];
-				g_current_game_phase = PHASE_ENDING;
+				if (!g_stage_flag_running)
+				{
+					g_current_game_phase = PHASE_ENDING;
+					InitGameObjectState();
+				}
+				/*delete game_phases[g_current_game_phase];			
 				game_phases[g_current_game_phase] = new Ending;*/
 			}
 			break;
@@ -161,13 +159,25 @@ void Stage1::HandleEvents()
 // ClearGame() 대신 소멸자 사용
 Stage1::~Stage1()
 {
-	//SDL_DestroyTexture(g_bg_sheet_texture); // 배경 메모리 해제
+	SDL_DestroyTexture(g_bg_sheet_texture); // 배경 메모리 해제
+	SDL_DestroyTexture(g_snake_sheet_texture); // 뱀 메모리 해제
+	SDL_DestroyTexture(g_apple_sheet_texture); // 사과 메모리 해제
+	SDL_DestroyTexture(g_gameover_text_kr); // 게임오버 텍스트 메모리 해제
 	
-	//TTF_CloseFont(g_font); // 폰트 메모리 해제
+
+	TTF_CloseFont(g_font_gameover); // 폰트 메모리 해제
 
 	//Mix_FreeChunk(g_missile_fire_sound);
 }
 
+void Stage1::InitGameObjectState()
+{
+	g_cur_key = -1;
+	snakeList.clear();
+	g_stage_flag_running = true;
+	g_stage_is_colliding = false;
+	MakeSnake();
+}
 void Stage1::MakeGameObjTextures()
 {
 	SDL_Surface* bg_sheet_surface = IMG_Load("../../Resources/BG.png"); // 이미지 파일을 가져옴
@@ -256,7 +266,12 @@ void Stage1::MakeSnake()
 	else if (g_cur_key == Key::DOWN) {
 		front.destination_snake.y += CELL;
 	}
-
+	CheckIsSnakeBody();
+	if (visited[front.destination_snake.x / 50][front.destination_snake.y / 50])
+	{
+		g_stage_flag_running = false;
+		return;
+	}
 	snakeList.push_front(front);
 }
 void Stage1::CheckIsGameOver(SDL_Rect snakeHeadRect)
@@ -301,16 +316,10 @@ bool Stage1::GetApple()
 }
 pair<int,int> Stage1::CreateRandomPosition()
 {
-	bool visited[13][13];
-
-	fill(&visited[0][0], &visited[12][13], false);
+	CheckIsSnakeBody();
 
 	srand((unsigned int)time(NULL));
 	
-	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
-	{
-		visited[iter->destination_snake.x / 50][iter->destination_snake.y / 50] = true;
-	}
 	int x, y;
 	while (true)
 	{
@@ -321,6 +330,15 @@ pair<int,int> Stage1::CreateRandomPosition()
 	}
 			
 	return { x * CELL, y * CELL };
+}
+void Stage1::CheckIsSnakeBody()
+{	
+	fill(&visited[0][0], &visited[12][13], false);
+
+	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
+	{
+		visited[iter->destination_snake.x / 50][iter->destination_snake.y / 50] = true;
+	}
 }
 void Stage1::DrawGameText()
 {
@@ -349,6 +367,7 @@ void Stage1::InitChunk()
 	Mix_VolumeChunk(g_ride_tank_sound, 24);*/
 
 }
+
 void Stage1::InitTexts()
 {
 	g_font_gameover = TTF_OpenFont("../../Resources/MaruBuri-SemiBold.ttf", 32);

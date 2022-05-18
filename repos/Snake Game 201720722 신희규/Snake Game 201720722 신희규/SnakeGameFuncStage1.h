@@ -38,7 +38,8 @@ private:
 	SDL_Rect g_gameover_text_kr_rect;
 	SDL_Color black = { 0, 0, 0, 0 }; // »ö±ò ¼±¾ð
 
-	int g_cur_key = -1, g_last_key = -1;
+	bool visited[13][13];
+	int g_cur_key;
 	int g_stage_last_time_ms;
 	bool g_stage_flag_running, g_stage_is_colliding;
 	
@@ -53,6 +54,8 @@ public:
 	virtual void Update() override;
 	virtual void Render() override;
 
+	void InitGameObjectState();
+	void CheckIsSnakeBody();
 	void DrawGameText();
 	void DrawGameOverText();
 	void InitChunk();
