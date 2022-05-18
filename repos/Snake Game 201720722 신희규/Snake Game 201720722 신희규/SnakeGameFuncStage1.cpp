@@ -6,6 +6,7 @@
 #include <atlstr.h> // 한국어 쓰려면 필요함
 
 #define SIZE 8
+#define CELL 50
 using namespace std;
 
 enum Key
@@ -23,7 +24,9 @@ Stage1::Stage1()
 	MakeGameObjTextures();
 	InitTexts();
 
+	snakeList.clear();
 	g_stage_flag_running = true;
+	g_stage_is_colliding = false;
 
 	g_bg_source_rect.x = 0; // 배경화면 가져오기
 	g_bg_source_rect.y = 0;
@@ -50,12 +53,13 @@ Stage1::Stage1()
 	g_apple_source_rect.w = 392;
 	g_apple_source_rect.h = 421;
 
-	g_destination_apple.x = 500; // 사과 위치 설정
-	g_destination_apple.y = 500;
+	pair<int, int> tempPos = CreateRandomPosition(); // 사과의 위치 설정
+	g_destination_apple.x = tempPos.first;
+	g_destination_apple.y = tempPos.second;
 	g_destination_apple.w = 50;
 	g_destination_apple.h = 50;
 
-	MakeSnake(g_destination_snake);
+	MakeSnake();
 
 	// Clear the console screen.
 	// 표준출력 화면을 깨끗히 지운다.
@@ -80,14 +84,17 @@ void Stage1::Update() {
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
 void Stage1::Render() {
 	
+	// 배경을 그림
 	SDL_RenderCopy(g_renderer, g_bg_sheet_texture, &g_bg_source_rect, &g_destination_bg); // texture를 복사해서 화면에 나타내주는 함수
+	
+	//사과를 그림
+	SDL_RenderCopy(g_renderer, g_apple_sheet_texture, &g_apple_source_rect, &g_destination_apple); // texture를 복사해서 화면에 나타내주는 함수
 
+	// 뱀을 그림
 	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
 	{
 		SDL_RenderCopy(g_renderer, g_snake_sheet_texture, &g_snake_source_rect, &iter->destination_snake);
-	}	
-
-	SDL_RenderCopy(g_renderer, g_apple_sheet_texture, &g_apple_source_rect, &g_destination_apple); // texture를 복사해서 화면에 나타내주는 함수
+	}
 
 	if(!g_stage_flag_running)
 		DrawGameOverText();
@@ -123,26 +130,7 @@ void Stage1::HandleEvents()
 			}
 			if (event.key.keysym.sym == SDLK_DOWN) {
 				g_cur_key = Key::DOWN;
-			}
-			if (event.key.keysym.sym == SDLK_q)
-			{
-				Snake front = snakeList.front();
-
-				if (g_cur_key == Key::LEFT) {
-					front.destination_snake.x -= 50;
-				}
-				else if (g_cur_key == Key::RIGHT) {
-					front.destination_snake.x += 50;
-				}
-				else if (g_cur_key == Key::UP) {
-					front.destination_snake.y -= 50;
-				}
-				else if (g_cur_key == Key::DOWN) {
-					front.destination_snake.y += 50;
-				}
-
-				MakeSnake(front);
-			}
+			}			
 			if (event.key.keysym.sym == SDLK_SPACE) {				
 				g_current_game_phase = PHASE_ENDING;				
 			}	
@@ -202,11 +190,19 @@ void Stage1::MakeGameObjTextures()
 void Stage1::SnakeMove()
 {	
 	if (!g_stage_flag_running) return;
-
 	
 	Uint32 cur_time_ms = SDL_GetTicks();
-
 	if (cur_time_ms - g_stage_last_time_ms < 150) return;
+
+	if (GetApple())
+	{
+		MakeSnake();
+		g_stage_is_colliding = false;
+		cout << "GET!\n";
+		pair<int, int> tempPos = CreateRandomPosition();
+		g_destination_apple.x = tempPos.first;
+		g_destination_apple.y = tempPos.second;
+	}
 		
 	Snake back = snakeList.back();
 	
@@ -214,17 +210,17 @@ void Stage1::SnakeMove()
 	back.destination_snake = curRect;
 
 	if (g_cur_key == Key::LEFT) {
-		back.destination_snake.x = curRect.x - 50;
+		back.destination_snake.x = curRect.x - CELL;
 	}
 	else if (g_cur_key == Key::RIGHT) {
-		back.destination_snake.x = curRect.x + 50;
+		back.destination_snake.x = curRect.x + CELL;
 	}
 	else if (g_cur_key == Key::UP) {
 
-		back.destination_snake.y = curRect.y - 50;
+		back.destination_snake.y = curRect.y - CELL;
 	}
 	else if (g_cur_key == Key::DOWN) {
-		back.destination_snake.y = curRect.y + 50;
+		back.destination_snake.y = curRect.y + CELL;
 	}
 	if (g_cur_key != -1)
 	{	
@@ -239,10 +235,29 @@ void Stage1::SnakeMove()
 	g_stage_last_time_ms = cur_time_ms;
 }
 
-void Stage1::MakeSnake(Snake snake)
+void Stage1::MakeSnake()
 {
-	Snake newSnake = Snake(snake.destination_snake);
-	snakeList.push_front(snake);
+	if (snakeList.empty())
+	{
+		snakeList.push_front(g_destination_snake);
+		return;
+	}
+	Snake front = snakeList.front();
+
+	if (g_cur_key == Key::LEFT) {
+		front.destination_snake.x -= CELL;
+	}
+	else if (g_cur_key == Key::RIGHT) {
+		front.destination_snake.x += CELL;
+	}
+	else if (g_cur_key == Key::UP) {
+		front.destination_snake.y -= CELL;
+	}
+	else if (g_cur_key == Key::DOWN) {
+		front.destination_snake.y += CELL;
+	}
+
+	snakeList.push_front(front);
 }
 void Stage1::CheckIsGameOver(SDL_Rect snakeHeadRect)
 {
@@ -267,21 +282,45 @@ void Stage1::CreateApple()
 {
 
 }
-bool Stage1::DistinctObject(SDL_Rect rect)
+bool Stage1::GetApple()
 {
-	/*int player_x = g_destination_charactor.x;
-	int player_y = g_destination_charactor.y;
+	int snake_x = snakeList.front().destination_snake.x;
+	int snake_y = snakeList.front().destination_snake.y;
 
-	int obj_rect_x_src = rect.x - rect.w / 2;
-	int obj_rect_y_src = rect.y - rect.h / 2;
+	int apple_x = g_destination_apple.x;
+	int apple_y = g_destination_apple.y;
 
-	int obj_rect_x_dst = rect.x + rect.w / 2;
-	int obj_rect_y_dst = rect.y + rect.h / 2;
+	if (snake_x == apple_x && snake_y == apple_y)
+	{
+		if (g_stage_is_colliding) return false;
 
-	if (player_x > obj_rect_x_src && player_y > obj_rect_y_src &&
-		player_x < obj_rect_x_dst && player_y < obj_rect_y_dst) return true;
+		g_stage_is_colliding = true;
+		return true;
+	}
+	else return false;
+}
+pair<int,int> Stage1::CreateRandomPosition()
+{
+	bool visited[13][13];
 
-	return false;*/
+	fill(&visited[0][0], &visited[12][13], false);
+
+	srand((unsigned int)time(NULL));
+	
+	for (auto iter = snakeList.begin(); iter != snakeList.end(); iter++)
+	{
+		visited[iter->destination_snake.x / 50][iter->destination_snake.y / 50] = true;
+	}
+	int x, y;
+	while (true)
+	{
+		int rnd1 = rand(); int rnd2 = rand();
+		x = ((int)rnd1 % 13); y = ((int)rnd2 % 13);
+
+		if (!visited[x][y]) break;
+	}
+			
+	return { x * CELL, y * CELL };
 }
 void Stage1::DrawGameText()
 {

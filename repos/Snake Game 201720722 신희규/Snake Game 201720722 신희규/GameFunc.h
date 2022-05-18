@@ -1,6 +1,8 @@
 #pragma once
 
-#include <iostream>
+#include<iostream>
+#include<cstdlib>
+#include<ctime>
 #include <string>
 #include "SDL.h"
 #include "SDL_ttf.h"
