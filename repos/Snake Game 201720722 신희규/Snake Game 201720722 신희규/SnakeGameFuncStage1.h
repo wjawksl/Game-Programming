@@ -18,12 +18,11 @@ private:
 			: destination_snake(ds)
 		{}
 	};
+
 	list<Snake> snakeList;
 	
-	
-	SDL_Rect g_bg_source_rect; // 배경 이미지에서 잘라오는 부분
-	SDL_Texture* g_bg_sheet_texture;
-	SDL_Rect g_destination_bg;
+	SDL_Rect g_bg_1_source_rect; // 배경
+	SDL_Rect g_bg_2_source_rect;
 
 	SDL_Rect g_snake_source_rect; // 캐릭터 이미지에서 잘라오는 부분
 	SDL_Texture* g_snake_sheet_texture;
@@ -36,8 +35,9 @@ private:
 	TTF_Font* g_font_gameover; // 게임 폰트 선언
 	SDL_Texture* g_gameover_text_kr;
 	SDL_Rect g_gameover_text_kr_rect;
+	SDL_Color white = { 255, 255, 255, 0 }; // 색깔 선언
 	SDL_Color black = { 0, 0, 0, 0 }; // 색깔 선언
-
+	
 	bool visited[13][13];
 	int g_cur_key;
 	int g_stage_last_time_ms;

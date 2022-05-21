@@ -23,16 +23,16 @@ Stage1::Stage1()
 	MakeGameObjTextures();
 	InitTexts();
 	
-	g_bg_source_rect.x = 0; // 배경화면 가져오기
-	g_bg_source_rect.y = 0;
-	g_bg_source_rect.w = 447;
-	g_bg_source_rect.h = 446;
+	g_bg_1_source_rect.x = 0;
+	g_bg_1_source_rect.y = 0;
+	g_bg_1_source_rect.w = 700;
+	g_bg_1_source_rect.h = 700;
 
-	g_destination_bg.x = 0; // 배경화면 위치 설정
-	g_destination_bg.y = 0;
-	g_destination_bg.w = 700;
-	g_destination_bg.h = 700;
-
+	g_bg_2_source_rect.x = 50;
+	g_bg_2_source_rect.y = 50;
+	g_bg_2_source_rect.w = 600;
+	g_bg_2_source_rect.h = 600;
+	
 	g_snake_source_rect.x = 498; // 뱀 가져오기
 	g_snake_source_rect.y = 75;
 	g_snake_source_rect.w = 136;
@@ -80,9 +80,12 @@ void Stage1::Update() {
 // main 함수의 while loop에 의해서 무한히 반복 호출된다는 것을 주의.
 void Stage1::Render() {
 	
-	// 배경을 그림
-	SDL_RenderCopy(g_renderer, g_bg_sheet_texture, &g_bg_source_rect, &g_destination_bg); // texture를 복사해서 화면에 나타내주는 함수
-	
+	SDL_SetRenderDrawColor(g_renderer, 0, 255, 0, 0);
+	SDL_RenderFillRect(g_renderer, &g_bg_1_source_rect);
+
+	SDL_SetRenderDrawColor(g_renderer, 255, 255, 255, 0);
+	SDL_RenderFillRect(g_renderer, &g_bg_2_source_rect);
+
 	//사과를 그림
 	SDL_RenderCopy(g_renderer, g_apple_sheet_texture, &g_apple_source_rect, &g_destination_apple); // texture를 복사해서 화면에 나타내주는 함수
 
@@ -159,7 +162,6 @@ void Stage1::HandleEvents()
 // ClearGame() 대신 소멸자 사용
 Stage1::~Stage1()
 {
-	SDL_DestroyTexture(g_bg_sheet_texture); // 배경 메모리 해제
 	SDL_DestroyTexture(g_snake_sheet_texture); // 뱀 메모리 해제
 	SDL_DestroyTexture(g_apple_sheet_texture); // 사과 메모리 해제
 	SDL_DestroyTexture(g_gameover_text_kr); // 게임오버 텍스트 메모리 해제
@@ -180,9 +182,6 @@ void Stage1::InitGameObjectState()
 }
 void Stage1::MakeGameObjTextures()
 {
-	SDL_Surface* bg_sheet_surface = IMG_Load("../../Resources/BG.png"); // 이미지 파일을 가져옴
-	g_bg_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, bg_sheet_surface);
-
 	SDL_Surface* snake_sheet_surface = IMG_Load("../../Resources/snake.png"); // 이미지 파일을 가져옴
 	SDL_SetColorKey(snake_sheet_surface, SDL_TRUE, SDL_MapRGB(snake_sheet_surface->format, 255, 255, 255));
 	g_snake_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, snake_sheet_surface);
@@ -191,7 +190,6 @@ void Stage1::MakeGameObjTextures()
 	SDL_SetColorKey(apple_sheet_surface, SDL_TRUE, SDL_MapRGB(apple_sheet_surface->format, 255, 255, 255));
 	g_apple_sheet_texture = SDL_CreateTextureFromSurface(g_renderer, apple_sheet_surface);
 	
-	SDL_FreeSurface(bg_sheet_surface);
 	SDL_FreeSurface(snake_sheet_surface);
 	SDL_FreeSurface(apple_sheet_surface);
 	
@@ -202,7 +200,7 @@ void Stage1::SnakeMove()
 	if (!g_stage_flag_running) return;
 	
 	Uint32 cur_time_ms = SDL_GetTicks();
-	if (cur_time_ms - g_stage_last_time_ms < 150) return;
+	if (cur_time_ms - g_stage_last_time_ms < 170) return; // 200ms마다 한 칸(50) 움직임
 
 	if (GetApple())
 	{
@@ -276,9 +274,8 @@ void Stage1::MakeSnake()
 }
 void Stage1::CheckIsGameOver(SDL_Rect snakeHeadRect)
 {
-	
-	if ((snakeHeadRect.x < 0 || 650 < snakeHeadRect.x) ||
-		(snakeHeadRect.y < 0 || 650 < snakeHeadRect.y))
+	if ((snakeHeadRect.x < 50 || 600 < snakeHeadRect.x) ||
+		(snakeHeadRect.y < 50 || 600 < snakeHeadRect.y))
 	{
 		g_stage_flag_running = false; return;
 	}
@@ -324,7 +321,7 @@ pair<int,int> Stage1::CreateRandomPosition()
 	while (true)
 	{
 		int rnd1 = rand(); int rnd2 = rand();
-		x = ((int)rnd1 % 13); y = ((int)rnd2 % 13);
+		x = (int)(rnd1 % 12 + 1); y = (int)(rnd2 % 12 + 1);
 
 		if (!visited[x][y]) break;
 	}
