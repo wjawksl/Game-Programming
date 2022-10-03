@@ -116,10 +116,9 @@ Ball::Update(double timestep_s)
 	double b = p_[1] - grad * p_[0];
 	 
 	// Collision with Fence edge
-	if (dist < radius_ * radius_
+	if (dist <= radius_ * radius_ && p_[1] > room_->vertiacal_fence_height()
 		&& p_[0] > room_->vertiacal_fence_pos_x() && v_[0] > 0 && v_[1] < 0)
 	{
-		std::cout << "Edge, Go Right\n";
 
 		// 직선의 방정식을 통해 x 좌표를 구함
 		double x = ((room_->vertiacal_fence_height() + radius_) - b) / grad;
@@ -132,10 +131,9 @@ Ball::Update(double timestep_s)
 		// Coefficient of restitution
 		v_[1] = coeff_of_restitution_ * v_[1];
 	}
-	else if (dist < radius_ * radius_
+	else if (dist <= radius_ * radius_ && p_[1] > room_->vertiacal_fence_height()
 		&& p_[0] < room_->vertiacal_fence_pos_x() && v_[0] > 0 && v_[1] < 0)
 	{
-		std::cout << "Edge, Go Left\n";
 
 		// 직선의 방정식을 통해 x 좌표를 구함
 		double x = ((room_->vertiacal_fence_height() + radius_) - b) / grad;
@@ -149,10 +147,9 @@ Ball::Update(double timestep_s)
 		
 		v_[1] = coeff_of_restitution_ * v_[1];
 	}
-	else if (dist < radius_ * radius_
+	else if (dist <= radius_ * radius_ && p_[1] > room_->vertiacal_fence_height()
 		&& p_[0] < room_->vertiacal_fence_pos_x() && v_[0] < 0 && v_[1] < 0)
 	{
-		std::cout << "Edge, Go Left\n";
 
 		// 직선의 방정식을 통해 x 좌표를 구함
 		double x = ((room_->vertiacal_fence_height() + radius_) - b) / grad;
@@ -165,10 +162,9 @@ Ball::Update(double timestep_s)
 		
 		v_[1] = coeff_of_restitution_ * v_[1];
 	}
-	else if (dist < radius_ * radius_
+	else if (dist <= radius_ * radius_ && p_[1] > room_->vertiacal_fence_height()
 		&& p_[0] > room_->vertiacal_fence_pos_x() && v_[0] < 0 && v_[1] < 0)
 	{
-		std::cout << "Edge, Go Right\n";
 
 		// 직선의 방정식을 통해 x 좌표를 구함
 		double x = ((room_->vertiacal_fence_height() + radius_) - b) / grad;
@@ -183,11 +179,9 @@ Ball::Update(double timestep_s)
 		v_[1] = coeff_of_restitution_ * v_[1];
 	}
 	// Collision with Fence of Leftside
-	else if (p_[0] + radius_ > room_->vertiacal_fence_pos_x() && p_[0] - radius_*0.5f < room_->vertiacal_fence_pos_x()
+	else if (p_[0] + radius_ > room_->vertiacal_fence_pos_x() && p_[0] - radius_ < room_->vertiacal_fence_pos_x()
 		&& p_[1] - radius_ < room_->vertiacal_fence_height() && v_[0] > 0)
-	{		
-		std::cout << "Collision with Fence of Leftside\n";
-
+	{				
 		v_[0] = -1 * v_[0];
 
 		// 직선의 방정식
@@ -200,10 +194,9 @@ Ball::Update(double timestep_s)
 		v_[0] = coeff_of_restitution_ * v_[0];
 	}
 	// Collision with Fence of Rightside
-	else if (p_[0] - radius_ < room_->vertiacal_fence_pos_x() && p_[0] + radius_*0.5f > room_->vertiacal_fence_pos_x()
+	else if (p_[0] - radius_ < room_->vertiacal_fence_pos_x() && p_[0] + radius_ > room_->vertiacal_fence_pos_x()
 		&& p_[1] - radius_ < room_->vertiacal_fence_height() && v_[0] < 0)
 	{
-		std::cout << "Collision with Fence of Rightside\n";
 		v_[0] = -1 * v_[0];
 		
 		// 직선의 방정식

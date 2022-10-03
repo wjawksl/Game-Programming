@@ -91,42 +91,25 @@ ProjectileGame::Update()
 	for ( int i=0; i<num_of_balls_; i++ )
 	{
 		balls_[i]->Update(g_timestep_s);
-		std::cout << "ball_pos = {" << balls_[i]->pos_x() << ", " << balls_[i]->pos_y() << "}\n";
 	}
 
 	timeCheck += g_timestep_s;
 
-	if (timeCheck >= 5.0f)
+	if (timeCheck >= 1.0f)
 	{
-		std::cout << "Shoot\n";
 		timeCheck = 0.0f;
 
 		pos_idx = 0;
-		for (int i = 0; i < 350; i++)
+		for (int i = 0; i < 70; i++)
 		{
 			draw_simul_ball_pos[i] = simul_ball_pos[i];
 		}
 		simul_ball->Reset();	
 	
-		mouse_game_x = W2G_X(mouse_win_x_);
-		mouse_game_y = W2G_Y(mouse_win_y_);
-
-		// Guide Line Vector
-		guide_line_x = mouse_game_x - simul_ball->pos_x();
-		guide_line_y = mouse_game_y - simul_ball->pos_y();
-
-		// Lauching Force
-		launcing_force_x = 8.0 * guide_line_x;
-		launcing_force_y = 8.0 * guide_line_y;
-
-
-		// Launch
-		simul_ball->Launch(launcing_force_x, launcing_force_y);
-		
+		Shoot(simul_ball);
 	}	
 	simul_ball->Update(g_timestep_s);
 	simul_ball_pos[pos_idx] = { simul_ball->pos_x(), simul_ball->pos_y() };
-	std::cout << "simul_ball_pos = {" << simul_ball->pos_x() << ", " << simul_ball->pos_y() << "}\n";
 	
 	pos_idx++;
 }
@@ -193,23 +176,8 @@ ProjectileGame::Render()
 
 		SDL_RenderCopy(g_renderer, ball_texture_, &ball_src_rectangle_, &dest_rect);
 	}
-	
-	int ball_win_x = G2W_X(simul_ball->pos_x());
-	int ball_win_y = G2W_Y(simul_ball->pos_y());
 
-	double win_radius = G2W_Scale * simul_ball->radius();
-
-	SDL_Rect dest_rect;
-	dest_rect.w = (int)(2 * win_radius);
-	dest_rect.h = (int)(2 * win_radius);
-	dest_rect.x = (int)(ball_win_x - win_radius);
-	dest_rect.y = (int)(ball_win_y - win_radius);
-
-	SDL_RenderCopy(g_renderer, ball_texture_, &ball_src_rectangle_, &dest_rect);
-	// Draw Simulation Ball
-
-
-	for (int i = 0; i < 350; i++)
+	for (int i = 0; i < 70; i++)
 	{
 		int simul_ball_win_x = G2W_X(draw_simul_ball_pos[i].x);
 		int simul_ball_win_y = G2W_Y(draw_simul_ball_pos[i].y);
@@ -223,7 +191,6 @@ ProjectileGame::Render()
 		simul_dest_rect.y = (int)(simul_ball_win_y - simul_win_radius);
 
 		SDL_RenderDrawPoint(g_renderer, simul_ball_win_x, simul_ball_win_y);
-		//SDL_RenderCopy(g_renderer, ball_texture_, &ball_src_rectangle_, &simul_dest_rect);
 	}
 	
 	
@@ -236,7 +203,6 @@ ProjectileGame::Render()
 										mouse_win_x_, 
 										mouse_win_y_ );
 	}
-
 
 	SDL_RenderPresent(g_renderer); // draw to the screen
 }
@@ -262,28 +228,18 @@ ProjectileGame::HandleEvents()
 			{
 				// Get the cursor's x position.
 				mouse_win_x_ = event.button.x;
-				mouse_win_y_ = event.button.y;
-			
-				mouse_game_x = W2G_X(mouse_win_x_);
-				mouse_game_y = W2G_Y(mouse_win_y_);
+				mouse_win_y_ = event.button.y;			
 							
 				// Launch
 				if ( num_of_balls_ > 0 )
 				{
 					Ball *ball = balls_[num_of_balls_-1];
 
-					// Guide Line Vector
-					guide_line_x = mouse_game_x - ball->pos_x();
-					guide_line_y = mouse_game_y - ball->pos_y();
-
-					// Lauching Force
-					launcing_force_x = 8.0 * guide_line_x;
-					launcing_force_y = 8.0 * guide_line_y;
-				
-					// Launch
-					balls_[num_of_balls_-1]->Launch(launcing_force_x, launcing_force_y);
-
-					
+					Shoot(ball);
+					for (int i = 0; i < 70; i++)
+					{
+						draw_simul_ball_pos[i] = {0,0};
+					}
 					// Add a new ball for the next
 					AddNewBall();
 				}
@@ -312,4 +268,21 @@ ProjectileGame::HandleEvents()
 			break;
 		}
 	}
+}
+void
+ProjectileGame::Shoot(Ball *ball)
+{
+	mouse_game_x = W2G_X(mouse_win_x_);
+	mouse_game_y = W2G_Y(mouse_win_y_);
+
+	// Guide Line Vector
+	guide_line_x = mouse_game_x - ball->pos_x();
+	guide_line_y = mouse_game_y - ball->pos_y();
+
+	// Lauching Force
+	launcing_force_x = 8.0 * guide_line_x;
+	launcing_force_y = 8.0 * guide_line_y;
+
+	// Launch
+	ball->Launch(launcing_force_x, launcing_force_y);
 }

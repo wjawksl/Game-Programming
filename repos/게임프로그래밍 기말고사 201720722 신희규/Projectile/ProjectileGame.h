@@ -17,6 +17,7 @@ public:
 
 protected:
 	void AddNewBall();
+	void Shoot(Ball *ball);
 
 protected:
 
@@ -40,8 +41,8 @@ protected:
 
 	// Simualted Ball
 	Ball* simul_ball;
-	Pos simul_ball_pos[350];
-	Pos draw_simul_ball_pos[350];
+	Pos simul_ball_pos[70];
+	Pos draw_simul_ball_pos[70];
 	int pos_idx = 0;
 	// Ball Texture
 	SDL_Texture* ball_texture_; 
